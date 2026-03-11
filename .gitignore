@@ -6,9 +6,10 @@ coverage
 .DS_Store
 yarn-error.log
 
-#Agents
+# Agents
 /.claude/
 /.omc/
 /.codex/
 /.omx/
 /.agents/
+/AGENTS.md
