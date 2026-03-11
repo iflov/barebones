@@ -62,15 +62,84 @@ Users:
 docker compose up -d
 ```
 
+### `.env`와 Docker Compose
+
+- `yarn start:dev`는 `.env`의 로컬 값(`DB_HOST=localhost` 등)을 사용합니다.
+- `docker compose up -d`는 같은 `.env`를 읽되, 컨테이너 내부 통신이 필요한 항목은
+  `DOCKER_DB_HOST`, `DOCKER_REDIS_HOST`, `DOCKER_LOKI_HOST` 값을 사용합니다.
+- 즉, 앱 공통 설정은 `.env` 하나로 관리하면서도, 로컬 실행과 Docker 실행의 호스트 차이를 분리했습니다.
+
+### `.env` 작성 규칙
+
+`.env.example`은 아래 섹션으로 나뉘어 있습니다.
+
+- `Application`
+- `Logging`
+- `HTTP / Health`
+- `Redis / Cache / BullMQ`
+- `Prometheus`
+- `Database`
+- `Grafana`
+
+로컬 실행과 Docker 실행에서 특히 아래 3쌍을 구분해야 합니다.
+
+| 목적       | 로컬 실행 값                      | Docker 실행 값                      |
+| ---------- | --------------------------------- | ----------------------------------- |
+| DB host    | `DB_HOST=localhost`               | `DOCKER_DB_HOST=mariadb`            |
+| Redis host | `REDIS_HOST=localhost`            | `DOCKER_REDIS_HOST=redis`           |
+| Loki host  | `LOKI_HOST=http://localhost:3100` | `DOCKER_LOKI_HOST=http://loki:3100` |
+
+### 자주 틀리는 항목
+
+- `APP_PORT`
+  - 앱 내부 포트입니다.
+  - 외부 접속 포트는 `APP_HOST_PORT`입니다.
+- `PROMETHEUS_PATH`
+  - 반드시 `admin/metrics` 여야 합니다.
+  - `metricss`처럼 오타가 나면 Prometheus scrape가 실패합니다.
+- `DB_HOST`, `REDIS_HOST`, `LOKI_HOST`
+  - 로컬 `yarn start:dev`에서는 `localhost`
+  - Docker 내부에서는 각각 `mariadb`, `redis`, `loki`
+
+### 권장 개발용 예시
+
+```env
+NODE_ENV=development
+APP_NAME=barebones-admin
+APP_PORT=3000
+APP_HOST_PORT=3000
+
+LOG_LEVEL=debug
+LOG_LOKI_ENABLED=true
+LOG_STDOUT_ENABLED=true
+LOKI_HOST=http://localhost:3100
+DOCKER_LOKI_HOST=http://loki:3100
+
+REDIS_HOST=localhost
+DOCKER_REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_KEY_PREFIX=barebones:
+
+DB_HOST=localhost
+DOCKER_DB_HOST=mariadb
+DB_PORT=3306
+DB_USERNAME=barebones
+DB_PASSWORD=barebones
+DB_DATABASE=barebones
+
+PROMETHEUS_PATH=admin/metrics
+```
+
 Grafana:
 
-- `http://localhost:3001`
-- id: `admin`
-- pw: `admin`
+- `http://localhost:${GRAFANA_HOST_PORT:-3001}`
+- id: `.env`의 `GRAFANA_ADMIN_USER`
+- pw: `.env`의 `GRAFANA_ADMIN_PASSWORD`
 
 Prometheus:
 
-- `http://localhost:9090`
+- `http://localhost:${PROMETHEUS_HOST_PORT:-9090}`
 
 ## 로그 확인 방법
 
@@ -85,7 +154,7 @@ docker compose logs -f app
 ### Loki/Grafana 로그
 
 1. Grafana 접속: `http://localhost:3001`
-2. 로그인: `admin` / `admin`
+2. 로그인: `.env`의 `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD`
 3. 좌측 메뉴에서 **Explore**
 4. Data source를 **Loki**로 선택
 5. 아래 쿼리 실행

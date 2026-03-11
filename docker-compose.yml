@@ -11,50 +11,50 @@ services:
       redis:
         condition: service_started
     environment:
-      NODE_ENV: development
-      APP_NAME: barebones-admin
-      APP_PORT: 3000
-      APP_SWAGGER_PATH: admin/docs
-      LOG_LEVEL: debug
-      LOG_LOKI_ENABLED: 'true'
-      LOG_STDOUT_ENABLED: 'true'
-      LOKI_HOST: http://loki:3100
-      THROTTLE_TTL: 60000
-      THROTTLE_LIMIT: 100
-      HEALTH_MEMORY_HEAP_THRESHOLD: 536870912
-      REDIS_ENABLED: 'true'
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ''
-      REDIS_DB: 0
-      REDIS_KEY_PREFIX: 'barebones:'
-      CACHE_TTL: 60000
-      BULLMQ_ENABLED: 'true'
-      BULLMQ_PREFIX: barebones
-      PROMETHEUS_ENABLED: 'true'
-      PROMETHEUS_PATH: admin/metrics
-      PROMETHEUS_METRIC_PREFIX: barebones_
-      DB_TYPE: mariadb
-      DB_HOST: mariadb
-      DB_PORT: 3306
-      DB_USERNAME: barebones
-      DB_PASSWORD: barebones
-      DB_DATABASE: barebones
-      DB_LOGGING: 'false'
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_NAME: ${APP_NAME:-barebones-admin}
+      APP_PORT: ${APP_PORT:-3000}
+      APP_SWAGGER_PATH: ${APP_SWAGGER_PATH:-admin/docs}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      LOG_LOKI_ENABLED: ${LOG_LOKI_ENABLED:-true}
+      LOG_STDOUT_ENABLED: ${LOG_STDOUT_ENABLED:-true}
+      LOKI_HOST: ${DOCKER_LOKI_HOST:-http://loki:3100}
+      THROTTLE_TTL: ${THROTTLE_TTL:-60000}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-100}
+      HEALTH_MEMORY_HEAP_THRESHOLD: ${HEALTH_MEMORY_HEAP_THRESHOLD:-536870912}
+      REDIS_ENABLED: ${REDIS_ENABLED:-true}
+      REDIS_HOST: ${DOCKER_REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_KEY_PREFIX: '${REDIS_KEY_PREFIX:-barebones:}'
+      CACHE_TTL: ${CACHE_TTL:-60000}
+      BULLMQ_ENABLED: ${BULLMQ_ENABLED:-true}
+      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-barebones}
+      PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
+      PROMETHEUS_PATH: ${PROMETHEUS_PATH:-admin/metrics}
+      PROMETHEUS_METRIC_PREFIX: ${PROMETHEUS_METRIC_PREFIX:-barebones_}
+      DB_TYPE: ${DB_TYPE:-mariadb}
+      DB_HOST: ${DOCKER_DB_HOST:-mariadb}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USERNAME: ${DB_USERNAME:-barebones}
+      DB_PASSWORD: ${DB_PASSWORD:-barebones}
+      DB_DATABASE: ${DB_DATABASE:-barebones}
+      DB_LOGGING: ${DB_LOGGING:-false}
     ports:
-      - '3000:3000'
+      - '${APP_HOST_PORT:-3000}:${APP_PORT:-3000}'
 
   mariadb:
     image: mariadb:11.8.6
     container_name: barebones-mariadb
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: barebones
-      MARIADB_USER: barebones
-      MARIADB_PASSWORD: barebones
-      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: ${DB_DATABASE:-barebones}
+      MARIADB_USER: ${DB_USERNAME:-barebones}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-barebones}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
     ports:
-      - '3306:3306'
+      - '${MARIADB_HOST_PORT:-3306}:3306'
     volumes:
       - mariadb-data:/var/lib/mysql
     healthcheck:
@@ -68,7 +68,7 @@ services:
     container_name: barebones-redis
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - '${REDIS_HOST_PORT:-6379}:6379'
     command: ['redis-server', '--save', '60', '1', '--loglevel', 'warning']
 
   loki:
@@ -76,7 +76,7 @@ services:
     container_name: barebones-loki
     restart: unless-stopped
     ports:
-      - '3100:3100'
+      - '${LOKI_HOST_PORT:-3100}:3100'
     command: ['-config.file=/etc/loki/local-config.yaml']
 
   prometheus:
@@ -86,7 +86,7 @@ services:
     depends_on:
       - app
     ports:
-      - '9090:9090'
+      - '${PROMETHEUS_HOST_PORT:-9090}:9090'
     volumes:
       - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
@@ -98,10 +98,10 @@ services:
       - loki
       - prometheus
     ports:
-      - '3001:3000'
+      - '${GRAFANA_HOST_PORT:-3001}:3000'
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:
       - grafana-data:/var/lib/grafana
       - ./ops/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
