@@ -1,0 +1,14 @@
+image: node:24
+
+pipelines:
+  default:
+    - step:
+        name: Install, lint, test, build
+        caches:
+          - node
+        script:
+          - yarn install --frozen-lockfile
+          - yarn lint
+          - yarn typecheck
+          - yarn test
+          - yarn build

@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.env
+.env.local
+.DS_Store
+yarn-error.log
+
+#Agents
+/.claude/
+/.omc/
+/.codex/
+/.omx/
+/.agents/
