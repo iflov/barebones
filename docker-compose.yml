@@ -1,0 +1,111 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: barebones-app
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      NODE_ENV: development
+      APP_NAME: barebones-admin
+      APP_PORT: 3000
+      APP_SWAGGER_PATH: admin/docs
+      LOG_LEVEL: debug
+      LOG_LOKI_ENABLED: 'true'
+      LOG_STDOUT_ENABLED: 'true'
+      LOKI_HOST: http://loki:3100
+      THROTTLE_TTL: 60000
+      THROTTLE_LIMIT: 100
+      HEALTH_MEMORY_HEAP_THRESHOLD: 536870912
+      REDIS_ENABLED: 'true'
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ''
+      REDIS_DB: 0
+      REDIS_KEY_PREFIX: 'barebones:'
+      CACHE_TTL: 60000
+      BULLMQ_ENABLED: 'true'
+      BULLMQ_PREFIX: barebones
+      PROMETHEUS_ENABLED: 'true'
+      PROMETHEUS_PATH: admin/metrics
+      PROMETHEUS_METRIC_PREFIX: barebones_
+      DB_TYPE: mariadb
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USERNAME: barebones
+      DB_PASSWORD: barebones
+      DB_DATABASE: barebones
+      DB_LOGGING: 'false'
+    ports:
+      - '3000:3000'
+
+  mariadb:
+    image: mariadb:11.8.6
+    container_name: barebones-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: barebones
+      MARIADB_USER: barebones
+      MARIADB_PASSWORD: barebones
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - '3306:3306'
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: barebones-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: ['redis-server', '--save', '60', '1', '--loglevel', 'warning']
+
+  loki:
+    image: grafana/loki:3.4.6
+    container_name: barebones-loki
+    restart: unless-stopped
+    ports:
+      - '3100:3100'
+    command: ['-config.file=/etc/loki/local-config.yaml']
+
+  prometheus:
+    image: prom/prometheus:v3.5.1
+    container_name: barebones-prometheus
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:11.6
+    container_name: barebones-grafana
+    restart: unless-stopped
+    depends_on:
+      - loki
+      - prometheus
+    ports:
+      - '3001:3000'
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./ops/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+
+volumes:
+  mariadb-data:
+  grafana-data:

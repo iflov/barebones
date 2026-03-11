@@ -1,0 +1,36 @@
+import * as Joi from 'joi';
+
+export const validationSchema = Joi.object({
+  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  APP_NAME: Joi.string().default('barebones-admin'),
+  APP_PORT: Joi.number().port().default(3000),
+  APP_SWAGGER_PATH: Joi.string().default('admin/docs'),
+  LOG_LEVEL: Joi.string().valid('trace', 'debug', 'info', 'warn', 'error', 'fatal').default('info'),
+  LOG_LOKI_ENABLED: Joi.boolean().truthy('true').falsy('false').default(false),
+  LOG_STDOUT_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  LOKI_HOST: Joi.string()
+    .uri({ scheme: ['http', 'https'] })
+    .default('http://localhost:3100'),
+  THROTTLE_TTL: Joi.number().integer().positive().default(60_000),
+  THROTTLE_LIMIT: Joi.number().integer().positive().default(100),
+  HEALTH_MEMORY_HEAP_THRESHOLD: Joi.number().integer().positive().default(536_870_912),
+  REDIS_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  REDIS_HOST: Joi.string().hostname().default('localhost'),
+  REDIS_PORT: Joi.number().port().default(6379),
+  REDIS_PASSWORD: Joi.string().allow('').default(''),
+  REDIS_DB: Joi.number().integer().min(0).default(0),
+  REDIS_KEY_PREFIX: Joi.string().default('barebones:'),
+  CACHE_TTL: Joi.number().integer().positive().default(60_000),
+  BULLMQ_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  BULLMQ_PREFIX: Joi.string().default('barebones'),
+  PROMETHEUS_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  PROMETHEUS_PATH: Joi.string().default('admin/metrics'),
+  PROMETHEUS_METRIC_PREFIX: Joi.string().default('barebones_'),
+  DB_TYPE: Joi.string().valid('mariadb', 'sqljs').default('mariadb'),
+  DB_HOST: Joi.string().hostname().default('localhost'),
+  DB_PORT: Joi.number().port().default(3306),
+  DB_USERNAME: Joi.string().default('barebones'),
+  DB_PASSWORD: Joi.string().allow('').default('barebones'),
+  DB_DATABASE: Joi.string().default('barebones'),
+  DB_LOGGING: Joi.boolean().truthy('true').falsy('false').default(false),
+});
