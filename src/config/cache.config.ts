@@ -15,7 +15,8 @@ export function buildCacheOptions(configService: ConfigService): CacheStoreOptio
   const stores = [
     new Keyv({
       store: new CacheableMemory({
-        lruSize: 5_000,
+        lruSize: 5000,
+        // lruSize: 5_000, 왜 5_000으로 했을까
         ttl,
       }),
     }),
