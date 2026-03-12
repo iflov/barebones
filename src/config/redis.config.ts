@@ -24,7 +24,7 @@ export function buildRedisOptions(configService: ConfigService): RedisOptions {
     db: configService.get<number>('REDIS_DB') ?? 0,
     enableReadyCheck: false,
     host: configService.get<string>('REDIS_HOST') ?? 'localhost',
-    keyPrefix: configService.get<string>('REDIS_KEY_PREFIX') ?? 'barebones:',
+    keyPrefix: configService.get<string>('REDIS_KEY_PREFIX') ?? 'admin:',
     lazyConnect: true,
     maxRetriesPerRequest: 1,
     password: password === '' ? undefined : password,

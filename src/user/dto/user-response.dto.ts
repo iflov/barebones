@@ -10,7 +10,7 @@ export class UserResponseDto {
   @ApiProperty({ example: 'admin@h2biz.co.kr' })
   readonly email!: string;
 
-  @ApiProperty({ example: 'Barebones Admin' })
+  @ApiProperty({ example: 'Admin User' })
   readonly userName!: string;
 
   @ApiProperty({ example: '2026-03-11T10:00:00.000Z' })

@@ -64,7 +64,7 @@ const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({
               connection: buildBullConnectionOptions(configService),
-              prefix: configService.get<string>('BULLMQ_PREFIX') ?? 'barebones',
+              prefix: configService.get<string>('BULLMQ_PREFIX') ?? 'admin',
             }),
           }),
         ]

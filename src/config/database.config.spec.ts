@@ -12,12 +12,12 @@ describe('buildTypeOrmOptions', () => {
   it('builds a mariadb config by default', () => {
     const config = createConfigService({
       DB_LOGGING: false,
-      DB_DATABASE: 'barebones',
+      DB_DATABASE: 'admin',
       DB_HOST: 'localhost',
-      DB_PASSWORD: 'barebones',
+      DB_PASSWORD: 'admin',
       DB_PORT: 3306,
       DB_TYPE: 'mariadb',
-      DB_USERNAME: 'barebones',
+      DB_USERNAME: 'admin',
     });
 
     const options = buildTypeOrmOptions(config);
@@ -28,13 +28,13 @@ describe('buildTypeOrmOptions', () => {
 
   it('builds a mariadb config when requested', () => {
     const config = createConfigService({
-      DB_DATABASE: 'barebones',
+      DB_DATABASE: 'admin',
       DB_HOST: 'localhost',
       DB_LOGGING: true,
       DB_PASSWORD: 'secret',
       DB_PORT: 3306,
       DB_TYPE: 'mariadb',
-      DB_USERNAME: 'barebones',
+      DB_USERNAME: 'admin',
     });
 
     const options = buildTypeOrmOptions(config);

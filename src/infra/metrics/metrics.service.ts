@@ -8,7 +8,7 @@ export class MetricsService {
   private readonly registry = new Registry();
 
   constructor(configService: ConfigService) {
-    this.prefix = configService.get<string>('PROMETHEUS_METRIC_PREFIX') ?? 'barebones_';
+    this.prefix = configService.get<string>('PROMETHEUS_METRIC_PREFIX') ?? 'admin_';
 
     collectDefaultMetrics({
       prefix: this.prefix,

@@ -20,18 +20,18 @@ export function buildTypeOrmOptions(configService: ConfigService): TypeOrmModule
 
   return {
     autoLoadEntities: true,
-    database: configService.get<string>('DB_DATABASE') ?? 'barebones',
+    database: configService.get<string>('DB_DATABASE') ?? 'admin',
     entities: [],
     host: configService.get<string>('DB_HOST') ?? 'localhost',
     logging,
     migrations: ['src/database/migrations/*{.ts,.js}'],
-    password: configService.get<string>('DB_PASSWORD') ?? 'barebones',
+    password: configService.get<string>('DB_PASSWORD') ?? 'admin',
     port: configService.get<number>('DB_PORT') ?? 3306,
     retryAttempts: 3,
     retryDelay: 1_000,
     synchronize: false,
     type: 'mariadb',
-    username: configService.get<string>('DB_USERNAME') ?? 'barebones',
+    username: configService.get<string>('DB_USERNAME') ?? 'admin',
   };
 }
 
@@ -50,15 +50,15 @@ export function buildDataSourceOptionsFromEnv(env: NodeJS.ProcessEnv): DataSourc
   }
 
   return {
-    database: env.DB_DATABASE ?? 'barebones',
+    database: env.DB_DATABASE ?? 'admin',
     entities: ['src/**/*.entity{.ts,.js}'],
     host: env.DB_HOST ?? 'localhost',
     logging,
     migrations: ['src/database/migrations/*{.ts,.js}'],
-    password: env.DB_PASSWORD ?? 'barebones',
+    password: env.DB_PASSWORD ?? 'admin',
     port: Number(env.DB_PORT ?? 3306),
     synchronize: false,
     type: 'mariadb',
-    username: env.DB_USERNAME ?? 'barebones',
+    username: env.DB_USERNAME ?? 'admin',
   };
 }

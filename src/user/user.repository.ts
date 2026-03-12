@@ -16,7 +16,7 @@ export class UserRepository {
       createdAt: new Date('2026-03-11T10:00:00.000Z'),
       email: 'admin@h2biz.co.kr',
       id: '1',
-      userName: 'Barebones Admin',
+      userName: 'Admin User',
     },
   ];
 

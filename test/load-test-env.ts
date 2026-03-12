@@ -1,5 +1,5 @@
 process.env.NODE_ENV = 'test';
-process.env.APP_NAME = 'barebones-admin-test';
+process.env.APP_NAME = 'admin-test';
 process.env.APP_PORT = '3000';
 process.env.APP_SWAGGER_PATH = 'admin/docs';
 process.env.LOG_LEVEL = 'error';
@@ -11,6 +11,6 @@ process.env.REDIS_ENABLED = 'false';
 process.env.BULLMQ_ENABLED = 'false';
 process.env.PROMETHEUS_ENABLED = 'true';
 process.env.PROMETHEUS_PATH = 'admin/metrics';
-process.env.PROMETHEUS_METRIC_PREFIX = 'barebones_test_';
+process.env.PROMETHEUS_METRIC_PREFIX = 'admin_test_';
 process.env.DB_TYPE = 'sqljs';
 process.env.DB_LOGGING = 'false';

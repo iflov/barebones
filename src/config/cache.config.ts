@@ -15,8 +15,7 @@ export function buildCacheOptions(configService: ConfigService): CacheStoreOptio
   const stores = [
     new Keyv({
       store: new CacheableMemory({
-        lruSize: 5000,
-        // lruSize: 5_000, 왜 5_000으로 했을까
+        lruSize: 5_000,
         ttl,
       }),
     }),
@@ -25,7 +24,7 @@ export function buildCacheOptions(configService: ConfigService): CacheStoreOptio
   if (isFeatureEnabled(configService.get<string | boolean>('REDIS_ENABLED'))) {
     stores.push(
       createKeyv(buildRedisUrl(configService), {
-        namespace: configService.get<string>('REDIS_KEY_PREFIX') ?? 'barebones:',
+        namespace: configService.get<string>('REDIS_KEY_PREFIX') ?? 'admin:',
       }),
     );
   }

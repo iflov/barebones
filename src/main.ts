@@ -15,10 +15,11 @@ async function bootstrap(): Promise<void> {
   const configService = app.get(ConfigService);
   const logger = app.get(Logger);
   const port = configService.get<number>('APP_PORT') ?? 3000;
+  const nodeEnv = configService.get<string>('NODE_ENV') ?? 'test';
 
   await app.listen(port);
 
-  logger.log(`Barebones API listening on port ${port}`);
+  logger.log(`${nodeEnv} API listening on port ${port}`);
 }
 
 void bootstrap();

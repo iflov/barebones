@@ -28,7 +28,7 @@ describe('MetricsInterceptor', () => {
     } as ExecutionContext;
   }
 
-  function createInterceptor(prefix = 'barebones_test_') {
+  function createInterceptor(prefix = 'admin_test_') {
     const registry = new Registry();
     const metricsService = {
       getPrefix: () => prefix,
@@ -52,9 +52,9 @@ describe('MetricsInterceptor', () => {
 
     const metrics = await registry.metrics();
 
-    expect(metrics).toContain('barebones_test_http_request_duration_seconds_count');
+    expect(metrics).toContain('admin_test_http_request_duration_seconds_count');
     expect(metrics).toContain('method="GET",route="/v1/admin/users/:id",status_code="204"');
-    expect(metrics).toContain('barebones_test_http_active_requests 0');
+    expect(metrics).toContain('admin_test_http_active_requests 0');
   });
 
   it('records UNKNOWN for requests without a resolved route', async () => {
@@ -80,9 +80,7 @@ describe('MetricsInterceptor', () => {
     };
 
     const result = lastValueFrom(interceptor.intercept(context, next));
-    const activeGauge = await registry
-      .getSingleMetric('barebones_test_http_active_requests')
-      ?.get();
+    const activeGauge = await registry.getSingleMetric('admin_test_http_active_requests')?.get();
 
     expect(activeGauge?.values[0]?.value).toBe(1);
 
@@ -90,9 +88,7 @@ describe('MetricsInterceptor', () => {
     subject.complete();
     await result;
 
-    const settledGauge = await registry
-      .getSingleMetric('barebones_test_http_active_requests')
-      ?.get();
+    const settledGauge = await registry.getSingleMetric('admin_test_http_active_requests')?.get();
 
     expect(settledGauge?.values[0]?.value).toBe(0);
   });

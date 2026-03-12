@@ -32,7 +32,7 @@ export function configureHttpApp(app: INestApplication): INestApplication {
   const document = SwaggerModule.createDocument(
     app,
     new DocumentBuilder()
-      .setTitle('Barebones Admin API')
+      .setTitle('Admin API')
       .setDescription('NestJS migration scaffold for the legacy admin platform')
       .setVersion('1.0.0')
       .addBearerAuth()

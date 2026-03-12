@@ -105,7 +105,7 @@ docker compose up -d
 
 ```env
 NODE_ENV=development
-APP_NAME=barebones-admin
+APP_NAME=admin
 APP_PORT=3000
 APP_HOST_PORT=3000
 
@@ -119,14 +119,14 @@ REDIS_HOST=localhost
 DOCKER_REDIS_HOST=redis
 REDIS_PORT=6379
 REDIS_DB=0
-REDIS_KEY_PREFIX=barebones:
+REDIS_KEY_PREFIX=admin:
 
 DB_HOST=localhost
 DOCKER_DB_HOST=mariadb
 DB_PORT=3306
-DB_USERNAME=barebones
-DB_PASSWORD=barebones
-DB_DATABASE=barebones
+DB_USERNAME=admin
+DB_PASSWORD=admin
+DB_DATABASE=admin
 
 PROMETHEUS_PATH=admin/metrics
 ```
@@ -160,20 +160,20 @@ docker compose logs -f app
 5. 아래 쿼리 실행
 
 ```logql
-{app="barebones-admin"}
+{app="admin"}
 ```
 
 환경까지 같이 보려면:
 
 ```logql
-{app="barebones-admin", env="development"}
+{app="admin", env="development"}
 ```
 
 ### Loki API로 직접 확인
 
 ```bash
 curl -G http://localhost:3100/loki/api/v1/query_range \
-  --data-urlencode 'query={app="barebones-admin"}' \
+  --data-urlencode 'query={app="admin"}' \
   --data-urlencode 'limit=20'
 ```
 

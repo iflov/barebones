@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: barebones-app
+    container_name: app
     restart: unless-stopped
     depends_on:
       mariadb:
@@ -12,7 +12,7 @@ services:
         condition: service_started
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      APP_NAME: ${APP_NAME:-barebones-admin}
+      APP_NAME: ${APP_NAME:-admin}
       APP_PORT: 3000
       APP_SWAGGER_PATH: ${APP_SWAGGER_PATH:-admin/docs}
       LOG_LEVEL: ${LOG_LEVEL:-debug}
@@ -27,31 +27,31 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       REDIS_DB: ${REDIS_DB:-0}
-      REDIS_KEY_PREFIX: '${REDIS_KEY_PREFIX:-barebones:}'
+      REDIS_KEY_PREFIX: '${REDIS_KEY_PREFIX:-admin:}'
       CACHE_TTL: ${CACHE_TTL:-60000}
       BULLMQ_ENABLED: ${BULLMQ_ENABLED:-true}
-      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-barebones}
+      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-admin}
       PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
       PROMETHEUS_PATH: ${PROMETHEUS_PATH:-admin/metrics}
-      PROMETHEUS_METRIC_PREFIX: barebones_
+      PROMETHEUS_METRIC_PREFIX: admin_
       DB_TYPE: ${DB_TYPE:-mariadb}
       DB_HOST: ${DOCKER_DB_HOST:-mariadb}
       DB_PORT: ${DB_PORT:-3306}
-      DB_USERNAME: ${DB_USERNAME:-barebones}
-      DB_PASSWORD: ${DB_PASSWORD:-barebones}
-      DB_DATABASE: ${DB_DATABASE:-barebones}
+      DB_USERNAME: ${DB_USERNAME:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin}
+      DB_DATABASE: ${DB_DATABASE:-admin}
       DB_LOGGING: ${DB_LOGGING:-false}
     ports:
       - '${APP_HOST_PORT:-3000}:3000'
 
   mariadb:
     image: mariadb:11.8.6
-    container_name: barebones-mariadb
+    container_name: mariadb
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_DATABASE:-barebones}
-      MARIADB_USER: ${DB_USERNAME:-barebones}
-      MARIADB_PASSWORD: ${DB_PASSWORD:-barebones}
+      MARIADB_DATABASE: ${DB_DATABASE:-admin}
+      MARIADB_USER: ${DB_USERNAME:-admin}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-admin}
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
     ports:
       - '${MARIADB_HOST_PORT:-3306}:3306'
@@ -65,7 +65,7 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    container_name: barebones-redis
+    container_name: redis
     restart: unless-stopped
     ports:
       - '${REDIS_HOST_PORT:-6379}:6379'
@@ -73,7 +73,7 @@ services:
 
   loki:
     image: grafana/loki:3.4.6
-    container_name: barebones-loki
+    container_name: loki
     restart: unless-stopped
     ports:
       - '${LOKI_HOST_PORT:-3100}:3100'
@@ -81,7 +81,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v3.5.1
-    container_name: barebones-prometheus
+    container_name: prometheus
     restart: unless-stopped
     depends_on:
       - app
@@ -92,7 +92,7 @@ services:
 
   grafana:
     image: grafana/grafana:11.6
-    container_name: barebones-grafana
+    container_name: grafana
     restart: unless-stopped
     depends_on:
       - loki

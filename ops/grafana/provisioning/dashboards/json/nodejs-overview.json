@@ -24,7 +24,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "barebones_app_up{job=\"barebones-app\"}",
+          "expr": "admin_app_up{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -62,7 +62,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "barebones_nodejs_eventloop_lag_p99_seconds{job=\"barebones-app\"}",
+          "expr": "admin_nodejs_eventloop_lag_p99_seconds{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -100,7 +100,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "barebones_nodejs_version_info{job=\"barebones-app\"}",
+          "expr": "admin_nodejs_version_info{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -138,7 +138,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "barebones_nodejs_active_requests_total{job=\"barebones-app\"}",
+          "expr": "admin_nodejs_active_requests_total{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -180,7 +180,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(barebones_process_cpu_seconds_total{job=\"barebones-app\"}[5m])"
+          "expr": "rate(admin_process_cpu_seconds_total{job=\"app\"}[5m])"
         }
       ],
       "fieldConfig": {
@@ -230,7 +230,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "barebones_nodejs_heap_size_used_bytes{job=\"barebones-app\"}",
+          "expr": "admin_nodejs_heap_size_used_bytes{job=\"app\"}",
           "legendFormat": "heap used"
         },
         {
@@ -239,7 +239,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "barebones_nodejs_heap_size_total_bytes{job=\"barebones-app\"}",
+          "expr": "admin_nodejs_heap_size_total_bytes{job=\"app\"}",
           "legendFormat": "heap total"
         }
       ],
@@ -290,7 +290,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "barebones_process_resident_memory_bytes{job=\"barebones-app\"}"
+          "expr": "admin_process_resident_memory_bytes{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -340,7 +340,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "barebones_nodejs_external_memory_bytes{job=\"barebones-app\"}"
+          "expr": "admin_nodejs_external_memory_bytes{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -390,7 +390,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "barebones_nodejs_eventloop_lag_seconds{job=\"barebones-app\"}"
+          "expr": "admin_nodejs_eventloop_lag_seconds{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -440,7 +440,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "barebones_nodejs_active_handles_total{job=\"barebones-app\"}"
+          "expr": "admin_nodejs_active_handles_total{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -490,7 +490,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(barebones_nodejs_gc_duration_seconds_sum{job=\"barebones-app\"}[5m])) by (kind)",
+          "expr": "sum(rate(admin_nodejs_gc_duration_seconds_sum{job=\"app\"}[5m])) by (kind)",
           "legendFormat": "{{kind}}"
         }
       ],
@@ -541,7 +541,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "barebones_process_start_time_seconds{job=\"barebones-app\"}"
+          "expr": "admin_process_start_time_seconds{job=\"app\"}"
         }
       ],
       "fieldConfig": {
