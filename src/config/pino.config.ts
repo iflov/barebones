@@ -35,8 +35,8 @@ export function buildPinoConfig(configService: ConfigService): Params {
         host: configService.get<string>('LOKI_HOST') ?? 'http://localhost:3100',
         interval: 5,
         labels: {
-          application: configService.get<string>('APP_NAME') ?? 'barebones-admin',
-          environment: nodeEnv,
+          app: configService.get<string>('APP_NAME') ?? 'barebones-admin',
+          env: nodeEnv,
         },
       },
       target: 'pino-loki',

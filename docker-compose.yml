@@ -105,6 +105,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./ops/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./ops/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
 
 volumes:
   mariadb-data:
