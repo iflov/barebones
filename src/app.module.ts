@@ -70,8 +70,8 @@ const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
         ]
       : []),
     AuthModule,
-    HealthModule,
     MetricsModule,
+    HealthModule,
     RedisModule,
     ...(bullmqEnabled && redisEnabled ? [QueueModule] : []),
     UserModule,

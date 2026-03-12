@@ -50,5 +50,8 @@ describe('HealthController (e2e)', () => {
 
     expect(response.headers['content-type']).toContain('text/plain');
     expect(response.text).toContain('barebones_test_app_up');
+    expect(response.text).toContain('barebones_test_http_request_duration_seconds_bucket');
+    expect(response.text).toContain('barebones_test_http_active_requests');
+    expect(response.text).toContain('barebones_test_health_check_status{indicator="database"}');
   });
 });

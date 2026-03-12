@@ -13,7 +13,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_NAME: ${APP_NAME:-barebones-admin}
-      APP_PORT: ${APP_PORT:-3000}
+      APP_PORT: 3000
       APP_SWAGGER_PATH: ${APP_SWAGGER_PATH:-admin/docs}
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       LOG_LOKI_ENABLED: ${LOG_LOKI_ENABLED:-true}
@@ -33,7 +33,7 @@ services:
       BULLMQ_PREFIX: ${BULLMQ_PREFIX:-barebones}
       PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
       PROMETHEUS_PATH: ${PROMETHEUS_PATH:-admin/metrics}
-      PROMETHEUS_METRIC_PREFIX: ${PROMETHEUS_METRIC_PREFIX:-barebones_}
+      PROMETHEUS_METRIC_PREFIX: barebones_
       DB_TYPE: ${DB_TYPE:-mariadb}
       DB_HOST: ${DOCKER_DB_HOST:-mariadb}
       DB_PORT: ${DB_PORT:-3306}
@@ -42,7 +42,7 @@ services:
       DB_DATABASE: ${DB_DATABASE:-barebones}
       DB_LOGGING: ${DB_LOGGING:-false}
     ports:
-      - '${APP_HOST_PORT:-3000}:${APP_PORT:-3000}'
+      - '${APP_HOST_PORT:-3000}:3000'
 
   mariadb:
     image: mariadb:11.8.6
