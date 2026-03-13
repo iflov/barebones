@@ -18,7 +18,6 @@ import { HealthModule } from './health/health.module';
 import { MetricsModule } from './infra/metrics/metrics.module';
 import { QueueModule } from './infra/queue/queue.module';
 import { RedisModule } from './infra/redis/redis.module';
-import { UserModule } from './user/user.module';
 
 const redisEnabled = isFeatureEnabled(process.env.REDIS_ENABLED);
 const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
@@ -75,7 +74,6 @@ const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
     HealthModule,
     RedisModule,
     ...(bullmqEnabled && redisEnabled ? [QueueModule] : []),
-    UserModule,
   ],
   providers: [
     {
