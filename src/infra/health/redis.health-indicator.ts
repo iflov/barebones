@@ -3,6 +3,19 @@ import { type HealthIndicatorResult, HealthIndicatorService } from '@nestjs/term
 
 import { RedisService } from '../redis/redis.service';
 
+/**
+ * Redis 헬스체크 구현체
+ *
+ * Redis에 PING 명령을 보내고 PONG 응답 여부로 상태를 판단.
+ *
+ * 호출 경로 (2가지):
+ *   1. GET /admin/health → terminus → HealthChecksService.getChecks() → isHealthy()
+ *   2. GET /admin/metrics → collect 콜백 → HealthChecksService.inspectIndicators() → isHealthy()
+ *
+ * 반환값 예시:
+ *   up:   { redis: { status: 'up' } }
+ *   down: { redis: { status: 'down', message: 'Connection refused' } }
+ */
 @Injectable()
 export class RedisHealthIndicator {
   constructor(
