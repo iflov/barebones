@@ -5,7 +5,6 @@ import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 export function configureHttpApp(app: INestApplication): INestApplication {
@@ -27,7 +26,6 @@ export function configureHttpApp(app: INestApplication): INestApplication {
   );
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
-  app.useGlobalInterceptors(new LoggingInterceptor(app.get(Logger)));
 
   const document = SwaggerModule.createDocument(
     app,

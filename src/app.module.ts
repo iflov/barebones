@@ -2,12 +2,13 @@ import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
 
 import { AuthModule } from './auth/auth.module';
+import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
 import { buildCacheOptions } from './config/cache.config';
 import { buildTypeOrmOptions } from './config/database.config';
 import { validationSchema } from './config/env.validation';
@@ -80,6 +81,10 @@ const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
   ],
 })

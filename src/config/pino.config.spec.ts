@@ -1,5 +1,9 @@
 import type { ConfigService } from '@nestjs/config';
 
+jest.mock('uuid', () => ({
+  v4: () => 'test-correlation-id',
+}));
+
 import { buildPinoConfig } from './pino.config';
 
 function createConfigService(values: Record<string, unknown>): ConfigService {

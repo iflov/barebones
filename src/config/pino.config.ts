@@ -3,6 +3,7 @@ import type { IncomingMessage } from 'node:http';
 import type { ConfigService } from '@nestjs/config';
 import dayjs from 'dayjs';
 import type { Params } from 'nestjs-pino';
+import { v4 as uuidv4 } from 'uuid';
 
 function isEnabled(value: string | boolean | undefined): boolean {
   return value === true || value === 'true';
@@ -54,16 +55,40 @@ export function buildPinoConfig(configService: ConfigService): Params {
 
   return {
     pinoHttp: {
-      autoLogging: false,
+      autoLogging: {
+        ignore: (req) => {
+          const url = req.url ?? '';
+          return url === '/health';
+        },
+      },
+      customLogLevel: (_req: IncomingMessage, res: { statusCode: number }, err?: Error) => {
+        if (err || res.statusCode >= 500) return 'error';
+        if (res.statusCode >= 400) return 'warn';
+        return 'info';
+      },
       customProps: (request: IncomingMessage & { id?: unknown; ip?: string }) => ({
+        correlationId: uuidv4(),
         ip: request.ip,
         requestId:
           typeof request.id === 'string' || typeof request.id === 'number' ? request.id : undefined,
       }),
       level: configService.get<string>('LOG_LEVEL') ?? 'info',
-      redact: {
-        censor: '[Redacted]',
-        paths: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'],
+      serializers: {
+        req: (req: {
+          headers?: Record<string, string>;
+          method?: string;
+          remoteAddress?: string;
+          url?: string;
+        }) => ({
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers?.['user-agent'],
+          remoteAddress: req.remoteAddress,
+        }),
+        res: (res: { headers?: Record<string, string>; statusCode?: number }) => ({
+          statusCode: res.statusCode,
+          contentLength: res.headers?.['content-length'],
+        }),
       },
       timestamp: () => `,"timestamp":"${dayjs().toISOString()}"`,
       transport,

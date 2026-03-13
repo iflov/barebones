@@ -1,79 +1,124 @@
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
-import { lastValueFrom, of, throwError } from 'rxjs';
+import { lastValueFrom, of } from 'rxjs';
 
 import { LoggingInterceptor } from './logger.interceptor';
 
-jest.mock('uuid', () => ({
-  v4: () => 'test-correlation-id',
-}));
-
 describe('LoggingInterceptor', () => {
-  const logger = {
-    error: jest.fn(),
-    log: jest.fn(),
-  };
+  let interceptor: LoggingInterceptor;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    interceptor = new LoggingInterceptor();
   });
 
-  function createHttpContext(responseStatusCode = 200): ExecutionContext {
-    const request = {
+  function createHttpContext(options?: { userId?: string }): {
+    context: ExecutionContext;
+    request: Record<string, unknown>;
+  } {
+    const request: Record<string, unknown> = {
       get: jest.fn().mockReturnValue('jest-agent'),
       ip: '127.0.0.1',
+      log: {
+        setBindings: jest.fn(),
+      },
       method: 'GET',
       path: '/v1/admin/health',
-    };
-    const response = {
-      get: jest.fn().mockReturnValue('123'),
-      statusCode: responseStatusCode,
+      ...(options?.userId ? { user: { userId: options.userId } } : {}),
     };
 
-    return {
+    const context = {
       getClass: () => ({ name: 'HealthController' }),
       getHandler: () => ({ name: 'check' }),
       getType: () => 'http',
       switchToHttp: () => ({
         getRequest: () => request,
-        getResponse: () => response,
       }),
     } as ExecutionContext;
+
+    return { context, request };
   }
 
-  it('logs request start and completion for HTTP calls', async () => {
-    const interceptor = new LoggingInterceptor(logger as never);
-    const context = createHttpContext();
-    const next: CallHandler = {
-      handle: () => of({ status: 'ok' }),
-    };
+  it('binds handler name to request.log for HTTP calls', async () => {
+    const { context, request } = createHttpContext();
+    const next: CallHandler = { handle: () => of({ status: 'ok' }) };
 
     await lastValueFrom(interceptor.intercept(context, next));
 
-    expect(logger.log).toHaveBeenCalledTimes(2);
-    expect(logger.log).toHaveBeenNthCalledWith(
-      1,
-      expect.stringContaining(
-        'GET /v1/admin/health anonymous jest-agent 127.0.0.1: HealthController check',
-      ),
-    );
-    expect(logger.log).toHaveBeenNthCalledWith(
-      2,
-      expect.stringContaining('GET /v1/admin/health 200 123:'),
-    );
-    expect(logger.error).not.toHaveBeenCalled();
+    expect((request.log as { setBindings: jest.Mock }).setBindings).toHaveBeenCalledWith({
+      handler: 'HealthController.check',
+    });
   });
 
-  it('logs request failures for HTTP calls', async () => {
-    const interceptor = new LoggingInterceptor(logger as never);
-    const context = createHttpContext(500);
-    const next: CallHandler = {
-      handle: () => throwError(() => new Error('boom')),
+  it('binds userId when user is authenticated', async () => {
+    const { context, request } = createHttpContext({ userId: 'user-123' });
+    const next: CallHandler = { handle: () => of({ status: 'ok' }) };
+
+    await lastValueFrom(interceptor.intercept(context, next));
+
+    expect((request.log as { setBindings: jest.Mock }).setBindings).toHaveBeenCalledWith({
+      handler: 'HealthController.check',
+      userId: 'user-123',
+    });
+  });
+
+  it('omits userId when user is not authenticated', async () => {
+    const { context, request } = createHttpContext();
+    const next: CallHandler = { handle: () => of({ status: 'ok' }) };
+
+    await lastValueFrom(interceptor.intercept(context, next));
+
+    const call = (request.log as { setBindings: jest.Mock }).setBindings.mock.calls[0][0];
+    expect(call).not.toHaveProperty('userId');
+  });
+
+  it('does not call logger.log() or logger.error() directly', async () => {
+    const { context } = createHttpContext();
+    const next: CallHandler = { handle: () => of({ status: 'ok' }) };
+    const logSpy = jest.fn();
+    const errorSpy = jest.fn();
+
+    // Attach spy methods that should NOT be called
+    const interceptorWithSpy = new LoggingInterceptor();
+    (interceptorWithSpy as unknown as { logger: { log: jest.Mock; error: jest.Mock } }).logger = {
+      log: logSpy,
+      error: errorSpy,
     };
 
-    await expect(lastValueFrom(interceptor.intercept(context, next))).rejects.toThrow('boom');
+    await lastValueFrom(interceptorWithSpy.intercept(context, next));
 
-    expect(logger.log).toHaveBeenCalledTimes(1);
-    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('ERROR:'));
-    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('boom'));
+    expect(logSpy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('passes through non-HTTP contexts without binding', async () => {
+    const context = {
+      getType: () => 'rpc',
+    } as ExecutionContext;
+    const next: CallHandler = { handle: () => of('result') };
+
+    const result = await lastValueFrom(interceptor.intercept(context, next));
+
+    expect(result).toBe('result');
+  });
+
+  it('handles missing request.log gracefully', async () => {
+    const request: Record<string, unknown> = {
+      get: jest.fn(),
+      ip: '127.0.0.1',
+      method: 'GET',
+      path: '/test',
+    };
+    const context = {
+      getClass: () => ({ name: 'TestController' }),
+      getHandler: () => ({ name: 'test' }),
+      getType: () => 'http',
+      switchToHttp: () => ({
+        getRequest: () => request,
+      }),
+    } as ExecutionContext;
+    const next: CallHandler = { handle: () => of('ok') };
+
+    const result = await lastValueFrom(interceptor.intercept(context, next));
+
+    expect(result).toBe('ok');
   });
 });

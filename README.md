@@ -95,8 +95,12 @@ docker compose up -d
   - 앱 내부 포트입니다.
   - 외부 접속 포트는 `APP_HOST_PORT`입니다.
 - `PROMETHEUS_PATH`
-  - 반드시 `admin/metrics` 여야 합니다.
-  - `metricss`처럼 오타가 나면 Prometheus scrape가 실패합니다.
+  - 현재 스캐폴드는 앱 라우트와 Prometheus scrape 설정이 `/v1/admin/metrics` 기준으로 맞춰져 있습니다.
+  - `PROMETHEUS_PATH` 값을 바꾸더라도 런타임 엔드포인트가 자동으로 바뀌지는 않습니다.
+  - 경로를 바꾸려면 앱 라우트/Prometheus 설정/문서를 함께 맞춰야 합니다.
+- `PROMETHEUS_ENABLED`
+  - 현재 문서/환경변수에는 존재하지만, 이 값만으로 metrics 엔드포인트 노출이 꺼지지는 않습니다.
+  - 기능 on/off 제어가 필요하면 코드와 운영 설정을 함께 정리해야 합니다.
 - `DB_HOST`, `REDIS_HOST`, `LOKI_HOST`
   - 로컬 `yarn start:dev`에서는 `localhost`
   - Docker 내부에서는 각각 `mariadb`, `redis`, `loki`
@@ -140,6 +144,60 @@ Grafana:
 Prometheus:
 
 - `http://localhost:${PROMETHEUS_HOST_PORT:-9090}`
+
+### Prometheus 확인 순서
+
+Prometheus 메인 Query 화면은 처음 열면 자동으로 metric 목록을 보여주지 않습니다.
+아무 쿼리도 실행하지 않은 상태에서는 `No data queried yet`가 보일 수 있는데, 이건 **정상 초기 상태**입니다.
+
+먼저 아래 순서로 확인하세요.
+
+1. `http://localhost:${PROMETHEUS_HOST_PORT:-9090}/targets`
+2. `app`, `prometheus` target이 둘 다 `UP`인지 확인
+3. `http://localhost:${PROMETHEUS_HOST_PORT:-9090}/query`로 이동
+4. 아래 starter query 중 하나를 실행
+
+### Starter Query
+
+항상 먼저 확인하기 좋은 metric:
+
+```promql
+admin_app_up
+admin_process_resident_memory_bytes
+admin_health_check_status
+```
+
+HTTP 요청을 한 번 발생시킨 뒤 확인할 metric:
+
+```promql
+admin_http_request_duration_seconds_count
+```
+
+예를 들어 아래 엔드포인트를 먼저 호출한 뒤 다시 쿼리하면 됩니다.
+
+- `http://localhost:${APP_HOST_PORT:-3000}/v1/admin/health`
+- `http://localhost:${APP_HOST_PORT:-3000}/v1/admin/users`
+
+BullMQ/Redis 기능이 활성화된 경우 확인할 수 있는 metric:
+
+```promql
+admin_bullmq_queue_waiting
+admin_bullmq_queue_active
+```
+
+### Grafana에서 같이 보면 좋은 대시보드
+
+Prometheus metric을 더 보기 쉽게 확인하려면 Grafana의 아래 대시보드를 같이 보세요.
+
+- `Node.js Application Overview`
+- `HTTP Performance`
+- `Infrastructure Health`
+- `BullMQ Job Queue`
+- `HTTP Request Logs`
+
+접속:
+
+- `http://localhost:${GRAFANA_HOST_PORT:-3001}`
 
 ## 로그 확인 방법
 
