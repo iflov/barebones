@@ -21,7 +21,7 @@ describe('LoggingInterceptor', () => {
         setBindings: jest.fn(),
       },
       method: 'GET',
-      path: '/v1/admin/health',
+      path: '/v1/system/health',
       ...(options?.userId ? { user: { userId: options.userId } } : {}),
     };
 

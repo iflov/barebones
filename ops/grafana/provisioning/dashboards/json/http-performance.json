@@ -28,7 +28,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(admin_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/admin/metrics\"}[5m])) by (method, route)",
+          "expr": "sum(rate(app_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/system/metrics\"}[5m])) by (method, route)",
           "legendFormat": "{{method}} {{route}}"
         }
       ],
@@ -79,7 +79,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(admin_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/admin/metrics\",status_code=~\"[45]..\"}[5m])) by (status_code)",
+          "expr": "sum(rate(app_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/system/metrics\",status_code=~\"[45]..\"}[5m])) by (status_code)",
           "legendFormat": "{{status_code}}"
         }
       ],
@@ -126,7 +126,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * ((sum(rate(admin_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/admin/metrics\",status_code=~\"[45]..\"}[5m])) ) or on() vector(0)) / clamp_min(sum(rate(admin_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/admin/metrics\"}[5m])), 1)",
+          "expr": "100 * ((sum(rate(app_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/system/metrics\",status_code=~\"[45]..\"}[5m])) ) or on() vector(0)) / clamp_min(sum(rate(app_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/system/metrics\"}[5m])), 1)",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -164,7 +164,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "admin_http_active_requests{job=\"app\"}",
+          "expr": "app_http_active_requests{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -206,7 +206,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.50, sum(rate(admin_http_request_duration_seconds_bucket{job=\"app\",route!=\"/v1/admin/metrics\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(app_http_request_duration_seconds_bucket{job=\"app\",route!=\"/v1/system/metrics\"}[5m])) by (le))",
           "legendFormat": "p50"
         },
         {
@@ -215,7 +215,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(admin_http_request_duration_seconds_bucket{job=\"app\",route!=\"/v1/admin/metrics\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(app_http_request_duration_seconds_bucket{job=\"app\",route!=\"/v1/system/metrics\"}[5m])) by (le))",
           "legendFormat": "p95"
         },
         {
@@ -224,7 +224,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.99, sum(rate(admin_http_request_duration_seconds_bucket{job=\"app\",route!=\"/v1/admin/metrics\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(app_http_request_duration_seconds_bucket{job=\"app\",route!=\"/v1/system/metrics\"}[5m])) by (le))",
           "legendFormat": "p99"
         }
       ],
@@ -271,7 +271,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(rate(admin_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/admin/metrics\"}[5m])) by (status_code)",
+          "expr": "sum(rate(app_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/system/metrics\"}[5m])) by (status_code)",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -307,7 +307,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum(rate(admin_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/admin/metrics\"}[5m])) by (route))",
+          "expr": "topk(10, sum(rate(app_http_request_duration_seconds_count{job=\"app\",route!=\"/v1/system/metrics\"}[5m])) by (route))",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"

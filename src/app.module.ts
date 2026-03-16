@@ -7,7 +7,6 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
 
-import { AuthModule } from './auth/auth.module';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
 import { buildCacheOptions } from './config/cache.config';
 import { buildTypeOrmOptions } from './config/database.config';
@@ -21,6 +20,7 @@ import { RedisModule } from './infra/redis/redis.module';
 
 const redisEnabled = isFeatureEnabled(process.env.REDIS_ENABLED);
 const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
+const metricsEnabled = isFeatureEnabled(process.env.PROMETHEUS_ENABLED);
 
 @Module({
   imports: [
@@ -64,14 +64,13 @@ const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({
               connection: buildBullConnectionOptions(configService),
-              prefix: configService.get<string>('BULLMQ_PREFIX') ?? 'admin',
+              prefix: configService.get<string>('BULLMQ_PREFIX') ?? 'app',
             }),
           }),
         ]
       : []),
-    AuthModule,
-    MetricsModule,
     HealthModule,
+    ...(metricsEnabled ? [MetricsModule] : []),
     RedisModule,
     ...(bullmqEnabled && redisEnabled ? [QueueModule] : []),
   ],

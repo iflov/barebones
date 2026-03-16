@@ -12,9 +12,11 @@ services:
         condition: service_started
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      APP_NAME: ${APP_NAME:-admin}
+      APP_NAME: ${APP_NAME:-barebones}
       APP_PORT: 3000
-      APP_SWAGGER_PATH: ${APP_SWAGGER_PATH:-admin/docs}
+      APP_SWAGGER_PATH: ${APP_SWAGGER_PATH:-docs}
+      APP_SWAGGER_TITLE: ${APP_SWAGGER_TITLE:-Barebones API}
+      APP_SWAGGER_DESCRIPTION: ${APP_SWAGGER_DESCRIPTION:-Reusable NestJS product scaffold}
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       LOG_LOKI_ENABLED: ${LOG_LOKI_ENABLED:-true}
       LOG_STDOUT_ENABLED: ${LOG_STDOUT_ENABLED:-true}
@@ -27,19 +29,18 @@ services:
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       REDIS_DB: ${REDIS_DB:-0}
-      REDIS_KEY_PREFIX: '${REDIS_KEY_PREFIX:-admin:}'
+      REDIS_KEY_PREFIX: '${REDIS_KEY_PREFIX:-app:}'
       CACHE_TTL: ${CACHE_TTL:-60000}
       BULLMQ_ENABLED: ${BULLMQ_ENABLED:-true}
-      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-admin}
+      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-app}
       PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
-      PROMETHEUS_PATH: ${PROMETHEUS_PATH:-admin/metrics}
-      PROMETHEUS_METRIC_PREFIX: admin_
+      PROMETHEUS_METRIC_PREFIX: ${PROMETHEUS_METRIC_PREFIX:-app_}
       DB_TYPE: ${DB_TYPE:-mariadb}
       DB_HOST: ${DOCKER_DB_HOST:-mariadb}
       DB_PORT: ${DB_PORT:-3306}
-      DB_USERNAME: ${DB_USERNAME:-admin}
-      DB_PASSWORD: ${DB_PASSWORD:-admin}
-      DB_DATABASE: ${DB_DATABASE:-admin}
+      DB_USERNAME: ${DB_USERNAME:-app}
+      DB_PASSWORD: ${DB_PASSWORD:-app}
+      DB_DATABASE: ${DB_DATABASE:-app}
       DB_LOGGING: ${DB_LOGGING:-false}
     ports:
       - '${APP_HOST_PORT:-3000}:3000'
@@ -49,9 +50,9 @@ services:
     container_name: mariadb
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_DATABASE:-admin}
-      MARIADB_USER: ${DB_USERNAME:-admin}
-      MARIADB_PASSWORD: ${DB_PASSWORD:-admin}
+      MARIADB_DATABASE: ${DB_DATABASE:-app}
+      MARIADB_USER: ${DB_USERNAME:-app}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-app}
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
     ports:
       - '${MARIADB_HOST_PORT:-3306}:3306'

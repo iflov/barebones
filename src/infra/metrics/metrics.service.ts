@@ -13,7 +13,7 @@ import { collectDefaultMetrics, Gauge, Registry } from 'prom-client';
  *
  * 흐름:
  *   앱 기동 → MetricsService 생성 → Registry에 기본 메트릭 + app_up 등록
- *   스크랩 시 → MetricsController → render() → registry.metrics() → 텍스트 반환
+ *   스크랩 시 → preset metrics controller → render() → registry.metrics() → 텍스트 반환
  */
 @Injectable()
 export class MetricsService {
@@ -22,12 +22,12 @@ export class MetricsService {
   /**
    * Registry = 메트릭들의 컨테이너 (창고)
    * 글로벌 registry 대신 전용 registry를 사용해서 다른 라이브러리의 메트릭과 격리.
-   * 여기에 등록된 메트릭만 /admin/metrics 에 노출된다.
+   * 여기에 등록된 메트릭만 active preset metrics route에 노출된다.
    */
   private readonly registry = new Registry();
 
   constructor(configService: ConfigService) {
-    this.prefix = configService.get<string>('PROMETHEUS_METRIC_PREFIX') ?? 'admin_';
+    this.prefix = configService.get<string>('PROMETHEUS_METRIC_PREFIX') ?? 'app_';
 
     /**
      * Node.js 런타임 기본 메트릭을 registry에 자동 등록
@@ -73,10 +73,10 @@ export class MetricsService {
    * Registry에 등록된 모든 메트릭을 Prometheus 텍스트 포맷으로 직렬화
    *
    * 반환 예시:
-   *   # HELP admin_app_up NestJS app bootstrap status
-   *   admin_app_up 1
-   *   # HELP admin_health_check_status Health indicator status (1=up, 0=down)
-   *   admin_health_check_status{indicator="database"} 1
+   *   # HELP app_app_up NestJS app bootstrap status
+   *   app_app_up 1
+   *   # HELP app_health_check_status Health indicator status (1=up, 0=down)
+   *   app_health_check_status{indicator="database"} 1
    *
    * 내부적으로 collect 콜백이 있는 메트릭은 이 시점에 콜백이 실행됨
    */

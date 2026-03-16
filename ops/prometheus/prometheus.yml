@@ -4,7 +4,7 @@ global:
 
 scrape_configs:
   - job_name: app
-    metrics_path: /v1/admin/metrics
+    metrics_path: /v1/system/metrics
     static_configs:
       - targets:
           - app:3000

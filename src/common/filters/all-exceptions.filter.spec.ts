@@ -1,13 +1,18 @@
 import type { ArgumentsHost } from '@nestjs/common';
 import { HttpException } from '@nestjs/common';
+import type { Logger } from 'nestjs-pino';
 
 import { AllExceptionsFilter } from './all-exceptions.filter';
 
 describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter;
+  let logger: Pick<Logger, 'error'>;
 
   beforeEach(() => {
-    filter = new AllExceptionsFilter();
+    logger = {
+      error: jest.fn(),
+    };
+    filter = new AllExceptionsFilter(logger as Logger);
   });
 
   function createHost() {
@@ -70,5 +75,34 @@ describe('AllExceptionsFilter', () => {
       data: null,
       message: exception.message,
     });
+  });
+
+  it('returns a generic 500 envelope for Error instances and logs the details', () => {
+    const { host, response } = createHost();
+    const exception = new Error('database connection blew up');
+
+    filter.catch(exception, host);
+
+    expect(response.status).toHaveBeenCalledWith(500);
+    expect(response.json).toHaveBeenCalledWith({
+      code: 500,
+      data: null,
+      message: 'Internal server error',
+    });
+    expect(logger.error).toHaveBeenCalledWith({ err: exception }, 'Unhandled exception');
+  });
+
+  it('returns a generic 500 envelope for unknown thrown values without leaking details', () => {
+    const { host, response } = createHost();
+
+    filter.catch('boom', host);
+
+    expect(response.status).toHaveBeenCalledWith(500);
+    expect(response.json).toHaveBeenCalledWith({
+      code: 500,
+      data: null,
+      message: 'Internal server error',
+    });
+    expect(logger.error).toHaveBeenCalledWith({ err: 'boom' }, 'Unhandled exception');
   });
 });

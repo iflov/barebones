@@ -53,10 +53,7 @@
     }
   },
   "dependencies": {
-    "@commitlint/cli": "^20.4.3",
-    "@commitlint/config-conventional": "^20.4.3",
     "@keyv/redis": "^5.1.6",
-    "@nestjs/axios": "^4.0.1",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.1.11",
@@ -67,7 +64,6 @@
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/typeorm": "^11.0.0",
-    "axios": "^1.13.6",
     "bullmq": "^5.70.4",
     "cache-manager": "^7.2.8",
     "cacheable": "^2.3.3",
@@ -93,10 +89,11 @@
     "rxjs": "^7.8.2",
     "sql.js": "^1.13.0",
     "swagger-ui-express": "^5.0.1",
-    "typeorm": "^0.3.24",
-    "uuid": "^13.0.0"
+    "typeorm": "^0.3.24"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.4.3",
+    "@commitlint/config-conventional": "^20.4.3",
     "@eslint/js": "^9.22.0",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/schematics": "^11.0.7",
@@ -105,10 +102,10 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.5.2",
     "@types/supertest": "^6.0.3",
-    "@types/uuid": "^11.0.0",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "globals": "^16.0.0",
+    "ioredis-mock": "^8.13.1",
     "jest": "^30.0.5",
     "prettier": "^3.6.2",
     "supertest": "^7.1.1",

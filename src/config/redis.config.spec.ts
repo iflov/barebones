@@ -75,7 +75,7 @@ describe('buildRedisOptions', () => {
       db: 0,
       enableReadyCheck: false,
       host: 'localhost',
-      keyPrefix: 'admin:',
+      keyPrefix: 'app:',
       lazyConnect: true,
       maxRetriesPerRequest: 1,
       password: undefined,

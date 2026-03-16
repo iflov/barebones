@@ -9,8 +9,8 @@ import { RedisService } from '../redis/redis.service';
  * Redis에 PING 명령을 보내고 PONG 응답 여부로 상태를 판단.
  *
  * 호출 경로 (2가지):
- *   1. GET /admin/health → terminus → HealthChecksService.getChecks() → isHealthy()
- *   2. GET /admin/metrics → collect 콜백 → HealthChecksService.inspectIndicators() → isHealthy()
+ *   1. GET /v1/<preset-health-path> → terminus → HealthChecksService.getChecks() → isHealthy()
+ *   2. GET /v1/<preset-metrics-path> → collect 콜백 → HealthChecksService.inspectIndicators() → isHealthy()
  *
  * 반환값 예시:
  *   up:   { redis: { status: 'up' } }

@@ -41,12 +41,12 @@ describe('MetricsService', () => {
     });
   });
 
-  it('falls back to admin_ when no prefix is configured', () => {
+  it('falls back to app_ when no prefix is configured', () => {
     const service = new MetricsService(createConfigService({}));
 
-    expect(service.getPrefix()).toBe('admin_');
+    expect(service.getPrefix()).toBe('app_');
     expect(collectDefaultMetrics).toHaveBeenCalledWith({
-      prefix: 'admin_',
+      prefix: 'app_',
       register: service.getRegistry(),
     });
   });

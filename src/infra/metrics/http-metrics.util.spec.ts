@@ -4,29 +4,29 @@ describe('normalizeHttpRoute', () => {
   it('builds a normalized route pattern from baseUrl and route path', () => {
     expect(
       normalizeHttpRoute({
-        baseUrl: '/v1/admin/users',
+        baseUrl: '/v1/system/items',
         route: {
           path: '/:id',
         },
       }),
-    ).toBe('/v1/admin/users/:id');
+    ).toBe('/v1/system/items/:id');
   });
 
   it('returns the baseUrl when the route path is the root path', () => {
     expect(
       normalizeHttpRoute({
-        baseUrl: '/v1/admin/health',
+        baseUrl: '/v1/system/health',
         route: {
           path: '/',
         },
       }),
-    ).toBe('/v1/admin/health');
+    ).toBe('/v1/system/health');
   });
 
   it('falls back to UNKNOWN when the request route is missing', () => {
     expect(
       normalizeHttpRoute({
-        baseUrl: '/v1/admin/missing',
+        baseUrl: '/v1/system/missing',
       }),
     ).toBe('UNKNOWN');
   });

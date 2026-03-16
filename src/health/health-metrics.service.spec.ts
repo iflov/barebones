@@ -1,3 +1,4 @@
+import type { ModuleRef } from '@nestjs/core';
 import { Registry } from 'prom-client';
 
 import { HealthMetricsService } from './health-metrics.service';
@@ -13,14 +14,17 @@ function createMocks(inspectResult: Record<string, number> = { database: 1, redi
   const healthChecksService = {
     inspectIndicators: jest.fn().mockResolvedValue(inspectResult),
   };
+  const moduleRef = {
+    get: jest.fn().mockReturnValue(metricsService),
+  };
 
-  const service = new (class extends HealthMetricsService {
-    constructor() {
-      super(metricsService as never, healthChecksService as never);
-    }
-  })();
+  const service = new HealthMetricsService(
+    moduleRef as unknown as ModuleRef,
+    healthChecksService as never,
+  );
+  service.onModuleInit();
 
-  return { service, registry, healthChecksService };
+  return { service, registry, healthChecksService, moduleRef };
 }
 
 describe('HealthMetricsService', () => {
@@ -40,18 +44,21 @@ describe('HealthMetricsService', () => {
       const healthChecksService = {
         inspectIndicators: jest.fn().mockResolvedValue({}),
       };
+      const moduleRef = {
+        get: jest.fn().mockReturnValue(metricsService),
+      };
 
-      new (class extends HealthMetricsService {
-        constructor() {
-          super(metricsService as never, healthChecksService as never);
-        }
-      })();
+      const first = new HealthMetricsService(
+        moduleRef as unknown as ModuleRef,
+        healthChecksService as never,
+      );
+      first.onModuleInit();
 
-      new (class extends HealthMetricsService {
-        constructor() {
-          super(metricsService as never, healthChecksService as never);
-        }
-      })();
+      const second = new HealthMetricsService(
+        moduleRef as unknown as ModuleRef,
+        healthChecksService as never,
+      );
+      second.onModuleInit();
 
       // 에러 없이 두 번 생성 가능
       expect(registry.getSingleMetric('test_health_check_status')).toBeDefined();

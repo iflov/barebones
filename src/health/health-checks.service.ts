@@ -35,8 +35,7 @@ interface NamedHealthIndicatorCheck {
  *         getChecks()      inspectIndicators()
  *         run만 추출         key+run 둘 다 사용
  *            ↓                    ↓
- *     HealthController      HealthMetricsService
- *     GET /admin/health     GET /admin/metrics
+ *     preset health route   preset metrics route
  *     JSON 응답 (k8s용)     Prometheus 텍스트 (Grafana용)
  */
 @Injectable()
@@ -105,7 +104,7 @@ export class HealthChecksService {
    * 각 체크를 실행하고 결과를 { database: 1, redis: 0, memory_heap: 1 } 형태로 변환.
    * Prometheus의 Gauge에 세팅할 수 있는 형태 (1=up, 0=down).
    *
-   * 호출 시점: Prometheus가 /admin/metrics 스크랩할 때
+   * 호출 시점: active preset metrics route가 스크랩될 때
    *   → registry.metrics() → health_check_status의 collect 콜백 → 여기 호출됨
    */
   async inspectIndicators(): Promise<Record<string, number>> {

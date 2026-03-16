@@ -24,7 +24,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "admin_app_up{job=\"app\"}",
+          "expr": "app_app_up{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -62,7 +62,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "admin_nodejs_eventloop_lag_p99_seconds{job=\"app\"}",
+          "expr": "app_nodejs_eventloop_lag_p99_seconds{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -100,7 +100,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "admin_nodejs_version_info{job=\"app\"}",
+          "expr": "app_nodejs_version_info{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -138,7 +138,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "admin_nodejs_active_requests_total{job=\"app\"}",
+          "expr": "app_nodejs_active_requests_total{job=\"app\"}",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -180,7 +180,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(admin_process_cpu_seconds_total{job=\"app\"}[5m])"
+          "expr": "rate(app_process_cpu_seconds_total{job=\"app\"}[5m])"
         }
       ],
       "fieldConfig": {
@@ -230,7 +230,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "admin_nodejs_heap_size_used_bytes{job=\"app\"}",
+          "expr": "app_nodejs_heap_size_used_bytes{job=\"app\"}",
           "legendFormat": "heap used"
         },
         {
@@ -239,7 +239,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "admin_nodejs_heap_size_total_bytes{job=\"app\"}",
+          "expr": "app_nodejs_heap_size_total_bytes{job=\"app\"}",
           "legendFormat": "heap total"
         }
       ],
@@ -290,7 +290,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "admin_process_resident_memory_bytes{job=\"app\"}"
+          "expr": "app_process_resident_memory_bytes{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -340,7 +340,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "admin_nodejs_external_memory_bytes{job=\"app\"}"
+          "expr": "app_nodejs_external_memory_bytes{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -390,7 +390,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "admin_nodejs_eventloop_lag_seconds{job=\"app\"}"
+          "expr": "app_nodejs_eventloop_lag_seconds{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -440,7 +440,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "admin_nodejs_active_handles_total{job=\"app\"}"
+          "expr": "app_nodejs_active_handles_total{job=\"app\"}"
         }
       ],
       "fieldConfig": {
@@ -490,7 +490,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(admin_nodejs_gc_duration_seconds_sum{job=\"app\"}[5m])) by (kind)",
+          "expr": "sum(rate(app_nodejs_gc_duration_seconds_sum{job=\"app\"}[5m])) by (kind)",
           "legendFormat": "{{kind}}"
         }
       ],
@@ -541,7 +541,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "admin_process_start_time_seconds{job=\"app\"}"
+          "expr": "app_process_start_time_seconds{job=\"app\"}"
         }
       ],
       "fieldConfig": {

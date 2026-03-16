@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, type OnModuleInit } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Gauge } from 'prom-client';
 
 import { MetricsService } from '../infra/metrics/metrics.service';
@@ -14,8 +15,8 @@ import { HealthChecksService } from './health-checks.service';
  *   앱 기동 → HealthMetricsService 생성 → Gauge를 registry에 등록 (collect 콜백만 등록, 아직 실행 안 됨)
  *
  *   Prometheus 스크랩 시:
- *     GET /admin/metrics
- *       → MetricsController.index()
+ *     GET /v1/<preset-metrics-path>
+ *       → preset metrics controller
  *         → metricsService.render()
  *           → registry.metrics()
  *             → prom-client가 이 Gauge의 collect 콜백 자동 실행
@@ -25,18 +26,49 @@ import { HealthChecksService } from './health-checks.service';
  *             → 텍스트로 직렬화하여 반환
  *
  * Prometheus 출력 예시:
- *   admin_health_check_status{indicator="database"} 1
- *   admin_health_check_status{indicator="redis"} 0
- *   admin_health_check_status{indicator="memory_heap"} 1
+ *   app_health_check_status{indicator="database"} 1
+ *   app_health_check_status{indicator="redis"} 0
+ *   app_health_check_status{indicator="memory_heap"} 1
  */
 @Injectable()
-export class HealthMetricsService {
-  private readonly gauge: Gauge<'indicator'>;
+export class HealthMetricsService implements OnModuleInit {
+  private gauge?: Gauge<'indicator'>;
 
   constructor(
-    metricsService: MetricsService,
+    /**
+     * MetricsService를 constructor에서 직접 주입하지 않고 ModuleRef로 지연 조회하는 이유:
+     *
+     * - HealthModule은 기본적으로 항상 살아 있어야 하는 기반 모듈이다.
+     * - 반면 MetricsService는 Prometheus 사용 여부에 따라 빠질 수 있는 선택 요소다.
+     * - 따라서 여기서 MetricsService를 강제 주입하면, metrics를 끄거나
+     *   MetricsModule을 제외한 구성에서 HealthModule까지 함께 깨질 수 있다.
+     *
+     * 즉, Health는 독립적으로 동작하고,
+     * Metrics가 있을 때만 health_check_status gauge를 붙이기 위해
+     * ModuleRef + onModuleInit 조합으로 느슨하게 연결한다.
+     */
+    private readonly moduleRef: ModuleRef,
     private readonly healthChecksService: HealthChecksService,
-  ) {
+  ) {}
+
+  onModuleInit(): void {
+    /**
+     * strict: false 로 조회하는 이유:
+     * - 현재 모듈 범위에 MetricsService가 없더라도
+     *   앱 전체 컨테이너에서 선택적으로 찾아오기 위해서다.
+     * - 없으면 조용히 skip 하고, 있으면 metrics registry에 gauge를 등록한다.
+     */
+    const metricsService = this.moduleRef.get(MetricsService, { strict: false });
+
+    if (metricsService === undefined) {
+      /**
+       * MetricsService가 없다는 것은 metrics 기능이 비활성화된 구성일 수 있다는 뜻이다.
+       * 이 경우 health metrics gauge를 만들지 않고 종료한다.
+       * 그래도 health endpoint 자체는 계속 정상 동작해야 한다.
+       */
+      return;
+    }
+
     const registry = metricsService.getRegistry();
     const metricName = `${metricsService.getPrefix()}health_check_status`;
 
@@ -51,7 +83,13 @@ export class HealthMetricsService {
       return;
     }
 
-    this.gauge = new Gauge({
+    /**
+     * this.gauge 대신 지역 변수 gauge를 callback 안에서 사용하는 이유:
+     * - this.gauge는 optional 필드라서 TypeScript가 undefined 가능성을 계속 추적한다.
+     * - 생성 직후에는 gauge가 확실히 존재하므로, collect 콜백에서는
+     *   지역 변수 gauge를 캡처해서 쓰는 편이 더 안전하고 단순하다.
+     */
+    const gauge = new Gauge({
       /**
        * collect 콜백 = Prometheus 스크랩 시점에 prom-client가 자동 호출하는 훅
        *
@@ -64,12 +102,12 @@ export class HealthMetricsService {
        *   reset 없이면 이전 스크랩의 redis 값이 그대로 남아 잘못된 메트릭 노출
        */
       collect: async () => {
-        this.gauge.reset();
+        gauge.reset();
 
         const statuses = await this.healthChecksService.inspectIndicators();
 
         Object.entries(statuses).forEach(([indicator, value]) => {
-          this.gauge.set({ indicator }, value);
+          gauge.set({ indicator }, value);
         });
       },
       help: 'Health indicator status (1=up, 0=down)',
@@ -77,5 +115,6 @@ export class HealthMetricsService {
       name: metricName,
       registers: [registry],
     });
+    this.gauge = gauge;
   }
 }

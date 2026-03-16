@@ -1,5 +1,6 @@
 import { ArgumentsHost, Catch, type ExceptionFilter, HttpException } from '@nestjs/common';
 import type { Response } from 'express';
+import { Logger } from 'nestjs-pino';
 
 type HttpExceptionResponse =
   | string
@@ -8,14 +9,20 @@ type HttpExceptionResponse =
       message?: string | string[];
     };
 
-@Catch(HttpException)
+@Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost): void {
+  constructor(private readonly logger?: Logger) {}
+
+  catch(exception: unknown, host: ArgumentsHost): void {
     const http = host.switchToHttp();
     const response = http.getResponse<Response>();
+    const status = exception instanceof HttpException ? exception.getStatus() : 500;
+    const message =
+      exception instanceof HttpException ? this.extractMessage(exception) : 'Internal server error';
 
-    const status = exception.getStatus();
-    const message = this.extractMessage(exception);
+    if (!(exception instanceof HttpException)) {
+      this.logger?.error({ err: exception }, 'Unhandled exception');
+    }
 
     response.status(status).json({
       code: status,

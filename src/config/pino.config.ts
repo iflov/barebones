@@ -1,9 +1,9 @@
+import { randomUUID } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 
 import type { ConfigService } from '@nestjs/config';
 import dayjs from 'dayjs';
 import type { Params } from 'nestjs-pino';
-import { v4 as uuidv4 } from 'uuid';
 
 function isEnabled(value: string | boolean | undefined): boolean {
   return value === true || value === 'true';
@@ -36,7 +36,7 @@ export function buildPinoConfig(configService: ConfigService): Params {
         host: configService.get<string>('LOKI_HOST') ?? 'http://localhost:3100',
         interval: 5,
         labels: {
-          app: configService.get<string>('APP_NAME') ?? 'admin',
+          app: configService.get<string>('APP_NAME') ?? 'barebones',
           env: nodeEnv,
         },
       },
@@ -67,7 +67,7 @@ export function buildPinoConfig(configService: ConfigService): Params {
         return 'info';
       },
       customProps: (request: IncomingMessage & { id?: unknown; ip?: string }) => ({
-        correlationId: uuidv4(),
+        correlationId: randomUUID(),
         ip: request.ip,
         requestId:
           typeof request.id === 'string' || typeof request.id === 'number' ? request.id : undefined,

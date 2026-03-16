@@ -24,7 +24,7 @@ export function buildCacheOptions(configService: ConfigService): CacheStoreOptio
   if (isFeatureEnabled(configService.get<string | boolean>('REDIS_ENABLED'))) {
     stores.push(
       createKeyv(buildRedisUrl(configService), {
-        namespace: configService.get<string>('REDIS_KEY_PREFIX') ?? 'admin:',
+        namespace: configService.get<string>('REDIS_KEY_PREFIX') ?? 'app:',
       }),
     );
   }

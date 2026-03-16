@@ -12,12 +12,12 @@ describe('buildTypeOrmOptions', () => {
   it('builds a mariadb config by default', () => {
     const config = createConfigService({
       DB_LOGGING: false,
-      DB_DATABASE: 'admin',
+      DB_DATABASE: 'app',
       DB_HOST: 'localhost',
-      DB_PASSWORD: 'admin',
+      DB_PASSWORD: 'app',
       DB_PORT: 3306,
       DB_TYPE: 'mariadb',
-      DB_USERNAME: 'admin',
+      DB_USERNAME: 'app',
     });
 
     const options = buildTypeOrmOptions(config);
@@ -28,13 +28,13 @@ describe('buildTypeOrmOptions', () => {
 
   it('builds a mariadb config when requested', () => {
     const config = createConfigService({
-      DB_DATABASE: 'admin',
+      DB_DATABASE: 'app',
       DB_HOST: 'localhost',
       DB_LOGGING: true,
       DB_PASSWORD: 'secret',
       DB_PORT: 3306,
       DB_TYPE: 'mariadb',
-      DB_USERNAME: 'admin',
+      DB_USERNAME: 'app',
     });
 
     const options = buildTypeOrmOptions(config);

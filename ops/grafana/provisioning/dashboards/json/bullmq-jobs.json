@@ -28,7 +28,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(admin_bullmq_jobs_processed_total{job=\"app\"}[5m])) by (queue, job_name)",
+          "expr": "sum(rate(app_bullmq_jobs_processed_total{job=\"app\"}[5m])) by (queue, job_name)",
           "legendFormat": "{{queue}} {{job_name}}"
         }
       ],
@@ -79,7 +79,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(admin_bullmq_jobs_failed_total{job=\"app\"}[5m])) by (queue, job_name)",
+          "expr": "sum(rate(app_bullmq_jobs_failed_total{job=\"app\"}[5m])) by (queue, job_name)",
           "legendFormat": "{{queue}} {{job_name}}"
         }
       ],
@@ -130,7 +130,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum(rate(admin_bullmq_job_duration_seconds_bucket{job=\"app\"}[5m])) by (le, queue, job_name))",
+          "expr": "histogram_quantile(0.95, sum(rate(app_bullmq_job_duration_seconds_bucket{job=\"app\"}[5m])) by (le, queue, job_name))",
           "legendFormat": "{{queue}} {{job_name}}"
         }
       ],
@@ -177,7 +177,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(admin_bullmq_queue_waiting{job=\"app\"})",
+          "expr": "sum(app_bullmq_queue_waiting{job=\"app\"})",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -215,7 +215,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(admin_bullmq_queue_active{job=\"app\"})",
+          "expr": "sum(app_bullmq_queue_active{job=\"app\"})",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"
@@ -253,7 +253,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "100 * sum(rate(admin_bullmq_jobs_failed_total{job=\"app\"}[5m])) / clamp_min(sum(rate(admin_bullmq_jobs_processed_total{job=\"app\"}[5m])) + sum(rate(admin_bullmq_jobs_failed_total{job=\"app\"}[5m])), 1)",
+          "expr": "100 * sum(rate(app_bullmq_jobs_failed_total{job=\"app\"}[5m])) / clamp_min(sum(rate(app_bullmq_jobs_processed_total{job=\"app\"}[5m])) + sum(rate(app_bullmq_jobs_failed_total{job=\"app\"}[5m])), 1)",
           "datasource": {
             "type": "prometheus",
             "uid": "prometheus"

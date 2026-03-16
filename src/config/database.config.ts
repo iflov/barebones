@@ -13,25 +13,25 @@ export function buildTypeOrmOptions(configService: ConfigService): TypeOrmModule
       autoLoadEntities: true,
       logging,
       migrations: ['src/database/migrations/*{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
       type: 'sqljs',
     };
   }
 
   return {
     autoLoadEntities: true,
-    database: configService.get<string>('DB_DATABASE') ?? 'admin',
+    database: configService.get<string>('DB_DATABASE') ?? 'app',
     entities: [],
     host: configService.get<string>('DB_HOST') ?? 'localhost',
     logging,
     migrations: ['src/database/migrations/*{.ts,.js}'],
-    password: configService.get<string>('DB_PASSWORD') ?? 'admin',
+    password: configService.get<string>('DB_PASSWORD') ?? 'app',
     port: configService.get<number>('DB_PORT') ?? 3306,
     retryAttempts: 3,
     retryDelay: 1_000,
     synchronize: false,
     type: 'mariadb',
-    username: configService.get<string>('DB_USERNAME') ?? 'admin',
+    username: configService.get<string>('DB_USERNAME') ?? 'app',
   };
 }
 
@@ -44,21 +44,21 @@ export function buildDataSourceOptionsFromEnv(env: NodeJS.ProcessEnv): DataSourc
       entities: ['src/**/*.entity{.ts,.js}'],
       logging,
       migrations: ['src/database/migrations/*{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
       type: 'sqljs',
     };
   }
 
   return {
-    database: env.DB_DATABASE ?? 'admin',
+    database: env.DB_DATABASE ?? 'app',
     entities: ['src/**/*.entity{.ts,.js}'],
     host: env.DB_HOST ?? 'localhost',
     logging,
     migrations: ['src/database/migrations/*{.ts,.js}'],
-    password: env.DB_PASSWORD ?? 'admin',
+    password: env.DB_PASSWORD ?? 'app',
     port: Number(env.DB_PORT ?? 3306),
     synchronize: false,
     type: 'mariadb',
-    username: env.DB_USERNAME ?? 'admin',
+    username: env.DB_USERNAME ?? 'app',
   };
 }

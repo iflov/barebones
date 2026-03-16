@@ -2,14 +2,16 @@ import { validationSchema } from './env.validation';
 
 describe('validationSchema', () => {
   describe('defaults', () => {
-    it('fills all defaults when no values are provided', () => {
+    it('fills all defaults', () => {
       const { value, error } = validationSchema.validate({});
 
       expect(error).toBeUndefined();
       expect(value.NODE_ENV).toBe('development');
-      expect(value.APP_NAME).toBe('admin');
+      expect(value.APP_NAME).toBe('barebones');
       expect(value.APP_PORT).toBe(3000);
-      expect(value.APP_SWAGGER_PATH).toBe('admin/docs');
+      expect(value.APP_SWAGGER_PATH).toBe('docs');
+      expect(value.APP_SWAGGER_TITLE).toBe('Barebones API');
+      expect(value.APP_SWAGGER_DESCRIPTION).toBe('Reusable NestJS product scaffold');
       expect(value.LOG_LEVEL).toBe('info');
       expect(value.LOG_LOKI_ENABLED).toBe(false);
       expect(value.LOG_STDOUT_ENABLED).toBe(true);
@@ -26,22 +28,21 @@ describe('validationSchema', () => {
       expect(value.REDIS_HOST_PORT).toBe(6379);
       expect(value.REDIS_PASSWORD).toBe('');
       expect(value.REDIS_DB).toBe(0);
-      expect(value.REDIS_KEY_PREFIX).toBe('admin:');
+      expect(value.REDIS_KEY_PREFIX).toBe('app:');
       expect(value.CACHE_TTL).toBe(60_000);
       expect(value.BULLMQ_ENABLED).toBe(true);
-      expect(value.BULLMQ_PREFIX).toBe('admin');
+      expect(value.BULLMQ_PREFIX).toBe('app');
       expect(value.PROMETHEUS_ENABLED).toBe(true);
-      expect(value.PROMETHEUS_PATH).toBe('admin/metrics');
-      expect(value.PROMETHEUS_METRIC_PREFIX).toBe('admin_');
+      expect(value.PROMETHEUS_METRIC_PREFIX).toBe('app_');
       expect(value.PROMETHEUS_HOST_PORT).toBe(9090);
       expect(value.DB_TYPE).toBe('mariadb');
       expect(value.DB_HOST).toBe('localhost');
       expect(value.DOCKER_DB_HOST).toBe('mariadb');
       expect(value.DB_PORT).toBe(3306);
       expect(value.MARIADB_HOST_PORT).toBe(3306);
-      expect(value.DB_USERNAME).toBe('admin');
-      expect(value.DB_PASSWORD).toBe('admin');
-      expect(value.DB_DATABASE).toBe('admin');
+      expect(value.DB_USERNAME).toBe('app');
+      expect(value.DB_PASSWORD).toBe('app');
+      expect(value.DB_DATABASE).toBe('app');
       expect(value.DB_LOGGING).toBe(false);
       expect(value.GRAFANA_HOST_PORT).toBe(3001);
     });
@@ -54,6 +55,8 @@ describe('validationSchema', () => {
         APP_NAME: 'my-app',
         APP_PORT: 8080,
         APP_SWAGGER_PATH: 'api/docs',
+        APP_SWAGGER_TITLE: 'My App API',
+        APP_SWAGGER_DESCRIPTION: 'My custom app',
         LOG_LEVEL: 'debug',
         LOG_LOKI_ENABLED: true,
         LOG_STDOUT_ENABLED: false,
@@ -75,7 +78,6 @@ describe('validationSchema', () => {
         BULLMQ_ENABLED: false,
         BULLMQ_PREFIX: 'myapp',
         PROMETHEUS_ENABLED: false,
-        PROMETHEUS_PATH: 'api/metrics',
         PROMETHEUS_METRIC_PREFIX: 'myapp_',
         PROMETHEUS_HOST_PORT: 9091,
         DB_TYPE: 'sqljs',
@@ -99,6 +101,7 @@ describe('validationSchema', () => {
       expect(value.NODE_ENV).toBe('production');
       expect(value.APP_PORT).toBe(8080);
       expect(value.DB_TYPE).toBe('sqljs');
+      expect(value.REDIS_DB).toBe(2);
     });
   });
 
@@ -130,7 +133,10 @@ describe('validationSchema', () => {
       ['MARIADB_HOST_PORT', 99999, '"MARIADB_HOST_PORT" must be a valid port'],
       ['GRAFANA_HOST_PORT', 99999, '"GRAFANA_HOST_PORT" must be a valid port'],
     ])('rejects %s = %s', (key, input, expectedMessage) => {
-      const { error } = validationSchema.validate({ [key]: input });
+      const payload = {
+        [key]: input,
+      };
+      const { error } = validationSchema.validate(payload);
 
       expect(error).toBeDefined();
       expect(error!.details[0].message).toContain(expectedMessage);
@@ -152,7 +158,9 @@ describe('validationSchema', () => {
       ['DB_LOGGING', 'true', true],
       ['DB_LOGGING', 'false', false],
     ])('coerces %s = "%s" to %s', (key, input, expected) => {
-      const { value, error } = validationSchema.validate({ [key]: input });
+      const { value, error } = validationSchema.validate({
+        [key]: input,
+      });
 
       expect(error).toBeUndefined();
       expect(value[key]).toBe(expected);
