@@ -30,7 +30,6 @@ export const validationSchema = Joi.object({
   BULLMQ_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
   BULLMQ_PREFIX: Joi.string().default('app'),
   PROMETHEUS_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
-  PROMETHEUS_METRIC_PREFIX: Joi.string().default('app_'),
   PROMETHEUS_HOST_PORT: Joi.number().port().default(9090),
   DB_TYPE: Joi.string().valid('mariadb', 'sqljs').default('mariadb'),
   DB_HOST: Joi.string().hostname().default('localhost'),

@@ -19,6 +19,8 @@
     "migration:generate": "yarn typeorm migration:generate src/database/migrations/AutoMigration",
     "migration:run": "yarn typeorm migration:run",
     "migration:revert": "yarn typeorm migration:revert",
+    "generate:observability": "ts-node --transpile-only scripts/generate-observability.ts",
+    "check:observability": "ts-node --transpile-only scripts/generate-observability.ts --check",
     "typecheck": "tsc --noEmit",
     "test": "jest --runInBand",
     "test:cov": "jest --coverage --runInBand",

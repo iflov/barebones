@@ -19,6 +19,6 @@
     "moduleResolution": "node",
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*", "test/**/*", "eslint.config.mjs"],
+  "include": ["src/**/*", "test/**/*", "scripts/**/*", "eslint.config.mjs"],
   "exclude": ["node_modules", "dist"]
 }

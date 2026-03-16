@@ -37,9 +37,9 @@ describe('AppController (e2e)', () => {
     const response = await request(baseUrl).get('/v1/system/metrics').expect(200);
 
     expect(response.headers['content-type']).toContain('text/plain');
-    expect(response.text).toContain('app_test_app_up');
-    expect(response.text).toContain('app_test_http_request_duration_seconds_bucket');
-    expect(response.text).toContain('app_test_http_active_requests');
-    expect(response.text).toContain('app_test_health_check_status{indicator="database"}');
+    expect(response.text).toContain('app_app_up');
+    expect(response.text).toContain('app_http_request_duration_seconds_bucket');
+    expect(response.text).toContain('app_http_active_requests');
+    expect(response.text).toContain('app_health_check_status{indicator="database"}');
   });
 });

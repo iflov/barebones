@@ -10,6 +10,5 @@ process.env.HEALTH_MEMORY_HEAP_THRESHOLD = '1073741824';
 process.env.REDIS_ENABLED = 'false';
 process.env.BULLMQ_ENABLED = 'false';
 process.env.PROMETHEUS_ENABLED = 'true';
-process.env.PROMETHEUS_METRIC_PREFIX = 'app_test_';
 process.env.DB_TYPE = 'sqljs';
 process.env.DB_LOGGING = 'false';

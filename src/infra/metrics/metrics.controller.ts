@@ -3,10 +3,11 @@ import { ApiExcludeController } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 
 import { RawResponse } from '../../common/decorators/raw-response.decorator';
+import { METRICS_ROUTE_PATH } from '../../config/observability.config';
 import { MetricsService } from './metrics.service';
 
 @ApiExcludeController()
-@Controller('system/metrics')
+@Controller(METRICS_ROUTE_PATH)
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 

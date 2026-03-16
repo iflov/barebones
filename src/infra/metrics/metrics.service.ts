@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { collectDefaultMetrics, Gauge, Registry } from 'prom-client';
 
+import { observabilityConfig } from '../../config/observability.config';
+
 /**
  * Prometheus 메트릭의 중앙 관리자 (싱글톤)
  *
@@ -27,7 +29,8 @@ export class MetricsService {
   private readonly registry = new Registry();
 
   constructor(configService: ConfigService) {
-    this.prefix = configService.get<string>('PROMETHEUS_METRIC_PREFIX') ?? 'app_';
+    this.prefix =
+      configService.get<string>('PROMETHEUS_METRIC_PREFIX') ?? observabilityConfig.metrics.prefix;
 
     /**
      * Node.js 런타임 기본 메트릭을 registry에 자동 등록

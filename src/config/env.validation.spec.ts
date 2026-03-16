@@ -33,7 +33,6 @@ describe('validationSchema', () => {
       expect(value.BULLMQ_ENABLED).toBe(true);
       expect(value.BULLMQ_PREFIX).toBe('app');
       expect(value.PROMETHEUS_ENABLED).toBe(true);
-      expect(value.PROMETHEUS_METRIC_PREFIX).toBe('app_');
       expect(value.PROMETHEUS_HOST_PORT).toBe(9090);
       expect(value.DB_TYPE).toBe('mariadb');
       expect(value.DB_HOST).toBe('localhost');
@@ -78,7 +77,6 @@ describe('validationSchema', () => {
         BULLMQ_ENABLED: false,
         BULLMQ_PREFIX: 'myapp',
         PROMETHEUS_ENABLED: false,
-        PROMETHEUS_METRIC_PREFIX: 'myapp_',
         PROMETHEUS_HOST_PORT: 9091,
         DB_TYPE: 'sqljs',
         DB_HOST: 'db.example.com',

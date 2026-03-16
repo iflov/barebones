@@ -67,10 +67,11 @@ BULLMQ_PREFIX=app
 
 ## Prometheus / Grafana
 
-현재 ops 파일 기본값은 barebones 기준이다.
+현재 observability 기본값은 `config/observability.config.json`에서 관리한다.
 
 - scrape path: `/v1/system/metrics`
 - metrics prefix: `app_`
+- scrape job: `app`
 
 Starter query:
 
@@ -89,6 +90,88 @@ app_http_request_duration_seconds_count
 예시 호출:
 
 - `http://localhost:${APP_HOST_PORT:-3000}/v1/system/health`
+
+### observability 설정을 바꾸는 방법
+
+drift가 자주 나는 값은 `.env`가 아니라 아래 파일에서 관리한다.
+
+```txt
+config/observability.config.json
+```
+
+현재 이 파일이 담당하는 값:
+
+- metric prefix
+- Prometheus scrape job 이름
+- Prometheus scrape target
+- Prometheus scrape path
+- Grafana Prometheus dashboard에서 제외할 route
+
+예:
+
+```json
+{
+  "metrics": {
+    "prefix": "app_"
+  },
+  "prometheus": {
+    "jobName": "app",
+    "scrapeTarget": "app:3000",
+    "metricsPath": "/v1/system/metrics"
+  }
+}
+```
+
+### 설정을 바꾼 뒤 해야 하는 일
+
+1. `config/observability.config.json` 수정
+2. 생성 실행
+
+```bash
+yarn generate:observability
+```
+
+3. drift 체크
+
+```bash
+yarn check:observability
+```
+
+4. Docker 스택 재시작
+
+```bash
+docker compose up -d --build
+```
+
+### 언제 `.env`를 바꾸고 언제 observability config를 바꾸나
+
+#### `.env`
+
+- 앱 이름
+- 앱 포트
+- DB/Redis 연결값
+- 로컬 런타임/컨테이너 실행값
+
+#### `config/observability.config.json`
+
+- Prometheus가 무엇을 어떻게 scrape할지
+- Grafana Prometheus 대시보드가 어떤 metric prefix / job / route filter를 사용할지
+
+즉:
+
+- **앱 실행 자체**를 바꾸면 `.env`
+- **관측/대시보드 의미**를 바꾸면 `observability.config.json`
+
+### 왜 이렇게 나눴나
+
+예전에 실제로:
+
+- 앱은 `admin_` prefix로 메트릭을 내보내고
+- Grafana는 `app_`를 조회해서
+
+HTTP Performance 패널이 비어 보이는 문제가 있었다.
+
+이제는 observability 관련 값들을 한 곳에서 바꾸고, Prometheus/Grafana 파일은 생성해서 맞추는 방식으로 drift를 줄인다.
 
 ## 이 scaffold를 확장하는 방법
 
@@ -110,6 +193,8 @@ Barebones는 공통 기반만 제공하고, 제품별 성격은 파생 프로젝
 ## 검증
 
 ```bash
+yarn generate:observability
+yarn check:observability
 yarn lint
 yarn typecheck
 yarn test

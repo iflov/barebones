@@ -1,0 +1,13 @@
+{
+  "prometheus": {
+    "jobName": "app",
+    "metricsPath": "/v1/system/metrics",
+    "scrapeTarget": "app:3000"
+  },
+  "grafana": {
+    "excludedRoutes": ["/v1/system/metrics"]
+  },
+  "metrics": {
+    "prefix": "app_"
+  }
+}
