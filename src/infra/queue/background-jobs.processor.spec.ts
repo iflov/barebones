@@ -19,12 +19,11 @@ function createMocks() {
   return { processor, logger, bullmqMetricsService };
 }
 
-function createJob(overrides: Record<string, unknown> = {}) {
+function createJob(overrides: { data?: unknown; id?: string; name?: string } = {}) {
   return {
-    id: 'job-1',
-    name: 'send-email',
-    data: { to: 'user@example.com' },
-    ...overrides,
+    data: overrides.data ?? { to: 'user@example.com' },
+    id: overrides.id ?? 'job-1',
+    name: overrides.name ?? 'send-email',
   } as never;
 }
 
