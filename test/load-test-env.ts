@@ -1,7 +1,12 @@
 process.env.NODE_ENV = 'test';
 process.env.APP_NAME = 'barebones-test';
 process.env.APP_PORT = '3000';
+process.env.APP_SHUTDOWN_TIMEOUT_MS = '1000';
+process.env.APP_SWAGGER_ENABLED = 'true';
 process.env.APP_SWAGGER_PATH = 'docs';
+process.env.CORS_ENABLED = 'true';
+process.env.CORS_ORIGINS = 'http://localhost:5173';
+process.env.CORS_CREDENTIALS = 'true';
 process.env.LOG_LEVEL = 'error';
 process.env.LOG_LOKI_ENABLED = 'false';
 process.env.THROTTLE_TTL = '60000';

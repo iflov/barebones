@@ -2,6 +2,20 @@ node_modules
 dist
 coverage
 .git
+
+# 시크릿 — Dockerfile이 `COPY . .`를 하므로 제외하지 않으면 **이미지 레이어에 그대로 박힌다.**
+# .gitignore와는 별개다(도커는 .gitignore를 읽지 않는다). 이미지를 받은 사람은 누구나
+# `docker history`나 레이어 추출로 꺼낼 수 있고, 나중에 삭제 레이어를 덧붙여도 이전 레이어에 남는다.
+.env
+.env.*
+!.env.example
+
+# 에이전트/도구 로컬 설정 — 런타임에 필요 없다
 .omx
 .omc
 .claude
+.specify
+
+# 빌드 산출물에 들어갈 이유가 없는 것 (tsconfig.build.json이 이미 제외한다)
+test
+*.md
