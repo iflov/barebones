@@ -11,22 +11,26 @@ import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
 import { buildCacheOptions } from './config/cache.config';
 import { buildTypeOrmOptions } from './config/database.config';
 import { validationSchema } from './config/env.validation';
+import { featureFlags } from './config/feature-flags';
+import { envFilePaths } from './config/load-env';
 import { buildPinoConfig } from './config/pino.config';
-import { buildBullConnectionOptions, isFeatureEnabled } from './config/redis.config';
+import { buildBullConnectionOptions } from './config/redis.config';
 import { HealthModule } from './health/health.module';
 import { MetricsModule } from './infra/metrics/metrics.module';
 import { QueueModule } from './infra/queue/queue.module';
 import { RedisModule } from './infra/redis/redis.module';
 
-const redisEnabled = isFeatureEnabled(process.env.REDIS_ENABLED);
-const bullmqEnabled = isFeatureEnabled(process.env.BULLMQ_ENABLED);
-const metricsEnabled = isFeatureEnabled(process.env.PROMETHEUS_ENABLED);
+// ⚠ 이 세 값은 DI 컨테이너 이전에 결정된다 (constitution A-3 예외 1).
+// `.env` 파일 값을 보려면 main.ts가 './config/load-env'를 먼저 import해야 한다 —
+// 그러지 않으면 모듈이 조용히 빠진 채로 앱이 정상 부팅한다. 근거는 load-env.ts 참고.
+const { bullmq: bullmqEnabled, metrics: metricsEnabled, redis: redisEnabled } = featureFlags;
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       cache: true,
-      envFilePath: [`.env.${process.env.NODE_ENV ?? 'development'}`, '.env'],
+      // load-env.ts와 같은 목록·같은 순서를 쓴다. 갈라지면 "부팅은 됐는데 플래그만 다른" 상태가 된다.
+      envFilePath: envFilePaths(),
       isGlobal: true,
       validationSchema,
       validationOptions: {
