@@ -1,4 +1,22 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts", "**/*.e2e-spec.ts"]
+  "compilerOptions": {
+    // rootDir을 고정하지 않으면 tsc가 include된 최상위 경로들의 공통 조상을 rootDir로
+    // 추론한다. tsconfig.json이 scripts/도 include하므로 그때 출력이 dist/src/main.js로
+    // 밀려서 start:prod(node dist/main)와 Dockerfile이 깨진다.
+    "rootDir": "src",
+    // nest-cli의 deleteOutDir가 매 빌드마다 dist/를 지우므로 증분 빌드는 성립하지 않는다.
+    // 게다가 rootDir 고정 시 .tsbuildinfo 기본 위치가 dist/ 밖(프로젝트 루트)으로 나가서,
+    // dist는 지워졌는데 캐시는 "최신"이라 판단해 아무것도 emit하지 않는 빈 빌드가 된다.
+    "incremental": false
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "scripts",
+    "eslint.config.mjs",
+    "**/*.spec.ts",
+    "**/*.e2e-spec.ts"
+  ]
 }

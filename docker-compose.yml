@@ -5,18 +5,38 @@ services:
       dockerfile: Dockerfile
     container_name: app
     restart: unless-stopped
+    # 이 compose는 **로컬 개발 환경**이다. 이미지의 기본 CMD(`yarn start:prod`)를 덮어써
+    # watch 모드로 띄우고, 소스를 마운트해서 호스트의 수정이 바로 반영되게 한다.
+    #
+    # node_modules는 마운트하지 않는다 — 이미지 안에서 설치된 것을 쓴다.
+    # 프로젝트 전체를 마운트하면 호스트의 (없거나 다른 플랫폼용) node_modules가
+    # 이미지의 것을 덮어써서 기동이 깨진다.
+    command: ['yarn', 'start:dev']
+    volumes:
+      - ./src:/app/src
+      - ./test:/app/test
+      # observability.config.json을 런타임에 읽으므로(process.cwd()/config) 같이 마운트한다.
+      - ./config:/app/config
     depends_on:
-      mariadb:
+      postgres:
         condition: service_healthy
+      # started가 아니라 healthy를 기다린다. started만 보면 Redis가 아직 응답하지 않는
+      # 상태에서 app이 떠서, Redis를 쓰는 기능(cache / BullMQ)이 부팅 직후 실패한다.
       redis:
-        condition: service_started
+        condition: service_healthy
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_NAME: ${APP_NAME:-barebones}
       APP_PORT: 3000
+      APP_SHUTDOWN_TIMEOUT_MS: ${APP_SHUTDOWN_TIMEOUT_MS:-10000}
+      APP_SWAGGER_ENABLED: ${APP_SWAGGER_ENABLED:-true}
       APP_SWAGGER_PATH: ${APP_SWAGGER_PATH:-docs}
       APP_SWAGGER_TITLE: ${APP_SWAGGER_TITLE:-Barebones API}
       APP_SWAGGER_DESCRIPTION: ${APP_SWAGGER_DESCRIPTION:-Reusable NestJS product scaffold}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-0}
+      CORS_ENABLED: ${CORS_ENABLED:-true}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      CORS_CREDENTIALS: ${CORS_CREDENTIALS:-true}
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       LOG_LOKI_ENABLED: ${LOG_LOKI_ENABLED:-true}
       LOG_STDOUT_ENABLED: ${LOG_STDOUT_ENABLED:-true}
@@ -34,31 +54,34 @@ services:
       BULLMQ_ENABLED: ${BULLMQ_ENABLED:-true}
       BULLMQ_PREFIX: ${BULLMQ_PREFIX:-app}
       PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
-      DB_TYPE: ${DB_TYPE:-mariadb}
-      DB_HOST: ${DOCKER_DB_HOST:-mariadb}
-      DB_PORT: ${DB_PORT:-3306}
+      DB_TYPE: ${DB_TYPE:-postgres}
+      DB_HOST: ${DOCKER_DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
       DB_USERNAME: ${DB_USERNAME:-app}
       DB_PASSWORD: ${DB_PASSWORD:-app}
       DB_DATABASE: ${DB_DATABASE:-app}
+      DB_SCHEMA: ${DB_SCHEMA:-public}
       DB_LOGGING: ${DB_LOGGING:-false}
+      DB_SSL: ${DB_SSL:-false}
+      DB_SSL_CA: ${DB_SSL_CA:-}
+      DB_SSL_REJECT_UNAUTHORIZED: ${DB_SSL_REJECT_UNAUTHORIZED:-true}
     ports:
       - '${APP_HOST_PORT:-3000}:3000'
 
-  mariadb:
-    image: mariadb:11.8.6
-    container_name: mariadb
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_DATABASE:-app}
-      MARIADB_USER: ${DB_USERNAME:-app}
-      MARIADB_PASSWORD: ${DB_PASSWORD:-app}
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root}
+      POSTGRES_DB: ${DB_DATABASE:-app}
+      POSTGRES_USER: ${DB_USERNAME:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app}
     ports:
-      - '${MARIADB_HOST_PORT:-3306}:3306'
+      - '${DB_HOST_PORT:-5432}:5432'
     volumes:
-      - mariadb-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-app}']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -69,7 +92,28 @@ services:
     restart: unless-stopped
     ports:
       - '${REDIS_HOST_PORT:-6379}:6379'
-    command: ['redis-server', '--save', '60', '1', '--loglevel', 'warning']
+    # 영속화가 없으면 컨테이너 재생성만으로 캐시·큐 상태가 전부 사라진다.
+    #   - appendonly + everysec: 유실 창이 최대 1초 (RDB만 쓰면 --save 주기만큼 = 최대 60초)
+    #   - --save 60 1 유지: RDB 스냅샷은 재시작이 빨라 AOF와 함께 두는 것이 권장 구성
+    # 볼륨이 없으면 위 설정은 전부 무의미하다 — /data가 컨테이너와 함께 사라진다.
+    command:
+      - redis-server
+      - --appendonly
+      - 'yes'
+      - --appendfsync
+      - everysec
+      - --save
+      - '60'
+      - '1'
+      - --loglevel
+      - warning
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   loki:
     image: grafana/loki:3.4.6
@@ -108,5 +152,6 @@ services:
       - ./ops/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
 
 volumes:
-  mariadb-data:
+  postgres-data:
+  redis-data:
   grafana-data:
