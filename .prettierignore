@@ -1,0 +1,15 @@
+# 빌드 산출물
+dist
+coverage
+
+# 생성물 — prettier가 건드리면 안 된다.
+#
+# scripts/generate-observability.ts가 JSON.stringify(..., 2)로 쓰는데,
+# prettier는 짧은 배열을 한 줄로 접는다("calcs": ["lastNotNull"]).
+# 둘 다 걸어두면 lint-staged가 커밋마다 접고 → check:observability가 stale로 실패하는
+# 무한 왕복이 된다. 생성물은 생성기만 소유한다 (constitution A-4).
+#
+# Grafana 대시보드 JSON은 5개 모두 기계 산출물(Grafana export / 생성기 출력)이라
+# 디렉토리째 제외한다. http-logs.json은 생성기 대상은 아니지만 같은 이유로 포함한다.
+ops/grafana/provisioning/dashboards/json/
+ops/prometheus/prometheus.yml

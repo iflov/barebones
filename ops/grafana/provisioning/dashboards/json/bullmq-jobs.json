@@ -192,7 +192,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "values": false
         },
         "orientation": "auto",
@@ -230,7 +232,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "values": false
         },
         "orientation": "auto",
@@ -268,7 +272,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "values": false
         },
         "orientation": "auto",
@@ -278,7 +284,11 @@
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["prometheus", "bullmq", "queue"],
+  "tags": [
+    "prometheus",
+    "bullmq",
+    "queue"
+  ],
   "templating": {
     "list": []
   },

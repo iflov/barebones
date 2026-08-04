@@ -15,8 +15,9 @@ describe('AllExceptionsFilter', () => {
     filter = new AllExceptionsFilter(logger as Logger);
   });
 
-  function createHost() {
+  function createHost(headersSent = false) {
     const response = {
+      headersSent,
       json: jest.fn(),
       status: jest.fn().mockReturnThis(),
     };
@@ -29,6 +30,31 @@ describe('AllExceptionsFilter', () => {
 
     return { host, response };
   }
+
+  /**
+   * HTTP 응답은 ① 상태코드+헤더 → ② 본문 순으로 나가고, ①이 나가면 되돌릴 수 없다.
+   * 스트리밍성 응답(`/v1/system/metrics`) 중간에 에러가 나면 여기서 `status()`를 다시 부르는
+   * 순간 Node가 `ERR_HTTP_HEADERS_SENT`를 던지고 **진짜 원인이 그 에러에 가려진다.**
+   */
+  describe('응답이 이미 시작된 경우', () => {
+    it('헤더가 나갔으면 응답을 다시 쓰지 않는다', () => {
+      const { host, response } = createHost(true);
+
+      filter.catch(new Error('boom'), host);
+
+      expect(response.status).not.toHaveBeenCalled();
+      expect(response.json).not.toHaveBeenCalled();
+    });
+
+    it('그래도 로그는 남긴다 (조용히 사라지면 안 된다)', () => {
+      const { host } = createHost(true);
+      const exception = new Error('boom');
+
+      filter.catch(exception, host);
+
+      expect(logger.error).toHaveBeenCalledWith({ err: exception }, 'Unhandled exception');
+    });
+  });
 
   it('returns the exception string response in the standard error envelope', () => {
     const { host, response } = createHost();

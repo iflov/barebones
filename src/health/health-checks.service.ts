@@ -7,7 +7,6 @@ import {
   TypeOrmHealthIndicator,
 } from '@nestjs/terminus';
 
-import { isFeatureEnabled } from '../config/redis.config';
 import { RedisHealthIndicator } from '../infra/health/redis.health-indicator';
 
 /**
@@ -51,8 +50,14 @@ export class HealthChecksService {
   /**
    * 모든 헬스체크 항목을 { key, run } 배열로 반환
    *
-   * 기본 체크: database, memory_heap, storage (항상 포함)
-   * 조건부 체크: redis (REDIS_ENABLED=true일 때만 추가)
+   * 체크 항목: database, memory_heap, storage, redis — **항상 전부 포함**한다.
+   *
+   * redis를 조건부로 넣지 않는 이유 (constitution E-1):
+   * 비활성 의존성을 목록에서 빼버리면 헬스체크는 200 OK를 반환한다. 그러면
+   * k8s readiness가 통과해 트래픽이 계속 들어오는데 Redis를 쓰는 기능은 전부 실패한다.
+   * Prometheus에서도 게이지가 `0`이 아니라 **아예 사라져서** 알람 룰이 발동 대상을 잃는다.
+   * 비활성화 상태는 목록에서 빼는 것이 아니라 `down`으로 보고한다
+   * (`RedisHealthIndicator`가 `ping() === 'DISABLED'`를 받아 down 처리한다).
    */
   private getNamedChecks(): NamedHealthIndicatorCheck[] {
     const checks: NamedHealthIndicatorCheck[] = [
@@ -76,14 +81,11 @@ export class HealthChecksService {
             thresholdPercent: 0.95,
           }),
       },
-    ];
-
-    if (isFeatureEnabled(this.configService.get<string | boolean>('REDIS_ENABLED'))) {
-      checks.push({
+      {
         key: 'redis',
         run: () => this.redis.isHealthy('redis'),
-      });
-    }
+      },
+    ];
 
     return checks;
   }

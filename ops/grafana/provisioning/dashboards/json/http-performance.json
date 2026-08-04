@@ -141,7 +141,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "values": false
         },
         "orientation": "auto",
@@ -179,7 +181,9 @@
       },
       "options": {
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "values": false
         },
         "orientation": "auto",
@@ -279,14 +283,19 @@
         }
       ],
       "options": {
-        "displayLabels": ["name", "percent"],
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
         "legend": {
           "displayMode": "list",
           "placement": "right"
         },
         "pieType": "pie",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "values": false
         }
       }
@@ -329,7 +338,9 @@
           "countRows": false,
           "enablePagination": true,
           "fields": "",
-          "reducer": ["sum"],
+          "reducer": [
+            "sum"
+          ],
           "show": false
         },
         "showHeader": true,
@@ -344,7 +355,11 @@
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["prometheus", "http", "performance"],
+  "tags": [
+    "prometheus",
+    "http",
+    "performance"
+  ],
   "templating": {
     "list": []
   },

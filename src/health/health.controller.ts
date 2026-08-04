@@ -3,10 +3,11 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { SkipThrottle } from '@nestjs/throttler';
 
+import { HEALTH_ROUTE_PATH } from '../config/observability.config';
 import { HealthChecksService } from './health-checks.service';
 
 @ApiTags('health')
-@Controller('system/health')
+@Controller(HEALTH_ROUTE_PATH)
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,

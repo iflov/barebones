@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -52,22 +52,16 @@ export class RedisService implements OnModuleDestroy {
     return client.del(...keys);
   }
 
-  async delByPrefix(prefix: string): Promise<number> {
-    const client = await this.getRequiredConnectedClient();
-    let cursor = '0';
-    let deleted = 0;
-
-    do {
-      const [nextCursor, keys] = await client.scan(cursor, 'MATCH', `${prefix}*`, 'COUNT', 100);
-      cursor = nextCursor;
-
-      if (keys.length > 0) {
-        deleted += await client.del(...keys);
-      }
-    } while (cursor !== '0');
-
-    return deleted;
-  }
+  // delByPrefix()는 제거했다. **조용히 실패하는 API였기 때문이다.**
+  //
+  // ioredis의 `keyPrefix`는 키 인자에는 붙지만 SCAN의 MATCH 패턴에는 붙지 않는다:
+  //   SCAN 0 MATCH 'auth:*'  →  실제 키는 'app:auth:...'이므로 0개 발견
+  //   DEL  'app:auth:x'      →  'app:app:auth:x'로 또 붙어서 0개 삭제
+  // 즉 무엇을 넘겨도 결과가 0인데 **에러는 안 난다.** 나중에 누가 "있으니까 쓰겠지" 하고
+  // 로그아웃이나 캐시 무효화에 쓰면 "지웠다고 생각했는데 살아 있는" 상태가 된다.
+  //
+  // prefix 삭제가 정말 필요해지면 그때 **테스트와 함께** 다시 만든다. 그때도 SCAN은
+  // 실제 키에 붙는 prefix를 포함한 패턴으로 만들고, 삭제는 prefix를 뗀 키로 해야 한다.
 
   async sAdd(key: string, ...members: string[]): Promise<number> {
     if (members.length === 0) {
@@ -115,11 +109,21 @@ export class RedisService implements OnModuleDestroy {
     return this.client;
   }
 
+  /**
+   * Redis를 전제하는 기능에서 쓰는 접근자.
+   *
+   * 일반 `Error`가 아니라 `ServiceUnavailableException`(503)을 던진다.
+   * `AllExceptionsFilter`는 `HttpException`이 아닌 예외를 전부 500으로 만드는데,
+   * 500은 "코드에 버그가 있다"는 신호라 **의존 서비스 부재를 서버 버그로 오인하게 된다.**
+   * 503이면 호출부·모니터링·재시도 정책이 "일시적 의존성 문제"로 다룰 수 있다.
+   */
   private async getRequiredConnectedClient(): Promise<Redis> {
     const client = await this.getConnectedClientOrNull();
 
     if (client === null) {
-      throw new Error('Redis is disabled. Set REDIS_ENABLED=true to use Redis-backed features.');
+      throw new ServiceUnavailableException(
+        'Redis is disabled. Set REDIS_ENABLED=true to use Redis-backed features.',
+      );
     }
 
     return client;

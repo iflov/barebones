@@ -118,23 +118,11 @@ describe('RedisService', () => {
       expect(client.del).toHaveBeenCalledWith('key');
     });
 
-    it('uses SCAN instead of KEYS for delByPrefix', async () => {
-      const config = createConfigService({ REDIS_ENABLED: 'true' });
-      const service = new RedisService(config);
-      const client = service.getClient()!;
-
-      client.scan = jest
-        .fn()
-        .mockResolvedValueOnce(['5', ['prefix:1', 'prefix:2']])
-        .mockResolvedValueOnce(['0', ['prefix:3']]);
-      client.del = jest.fn().mockResolvedValue(2).mockResolvedValueOnce(2).mockResolvedValueOnce(1);
-
-      await expect(service.delByPrefix('prefix:')).resolves.toBe(3);
-      expect(client.scan).toHaveBeenNthCalledWith(1, '0', 'MATCH', 'prefix:*', 'COUNT', 100);
-      expect(client.scan).toHaveBeenNthCalledWith(2, '5', 'MATCH', 'prefix:*', 'COUNT', 100);
-      expect(client.del).toHaveBeenNthCalledWith(1, 'prefix:1', 'prefix:2');
-      expect(client.del).toHaveBeenNthCalledWith(2, 'prefix:3');
-    });
+    // delByPrefix 테스트는 메서드와 함께 제거했다 (redis.service.ts의 주석 참고).
+    //
+    // 이 테스트는 D-1-M의 교본이었다: `scan`/`del`을 mock하고 **넘긴 인자**를 단언했기 때문에
+    // 항상 통과했지만, 실제 ioredis에서는 keyPrefix 때문에 0개를 지운다는 사실은 검증하지
+    // 못했다. "구현을 통째로 mock으로 바꿔도 통과하는가?" — 통과했다.
 
     it('supports set membership helpers for session indexes', async () => {
       const config = createConfigService({ REDIS_ENABLED: 'true' });

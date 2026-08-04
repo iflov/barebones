@@ -22,7 +22,7 @@ describe('LoggingInterceptor', () => {
       },
       method: 'GET',
       path: '/v1/system/health',
-      ...(options?.userId ? { user: { userId: options.userId } } : {}),
+      user: options?.userId === undefined ? undefined : { userId: options.userId },
     };
 
     const context = {
@@ -48,7 +48,15 @@ describe('LoggingInterceptor', () => {
     });
   });
 
-  it('binds userId when user is authenticated', async () => {
+  /**
+   * 사용자 식별자는 붙이지 않는다 — 인증이 이 스캐폴드의 범위가 아니라 `request.user`가 없다.
+   *
+   * 예전에는 `request.user?.userId`를 읽었는데, 인증을 붙이는 쪽이 `request.user.id`처럼
+   * 다른 필드명을 쓰면 **에러 없이 영원히 undefined**가 된다. 있다고 믿었던 로그 필드가
+   * 없는 상태이고, 애초에 없는 것보다 나쁘다. 인증을 추가할 때 바인딩과 함께
+   * 그 필드가 실제로 찍히는지 확인한다 (constitution D-1-M).
+   */
+  it('request.user가 있어도 사용자 정보를 바인딩하지 않는다', async () => {
     const { context, request } = createHttpContext({ userId: 'user-123' });
     const next: CallHandler = { handle: () => of({ status: 'ok' }) };
 
@@ -56,18 +64,7 @@ describe('LoggingInterceptor', () => {
 
     expect((request.log as { setBindings: jest.Mock }).setBindings).toHaveBeenCalledWith({
       handler: 'HealthController.check',
-      userId: 'user-123',
     });
-  });
-
-  it('omits userId when user is not authenticated', async () => {
-    const { context, request } = createHttpContext();
-    const next: CallHandler = { handle: () => of({ status: 'ok' }) };
-
-    await lastValueFrom(interceptor.intercept(context, next));
-
-    const call = (request.log as { setBindings: jest.Mock }).setBindings.mock.calls[0][0];
-    expect(call).not.toHaveProperty('userId');
   });
 
   it('does not call logger.log() or logger.error() directly', async () => {
