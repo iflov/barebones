@@ -1,0 +1,6 @@
+{
+  "rdb": {
+    "database": "postgres",
+    "orm": "typeorm"
+  }
+}

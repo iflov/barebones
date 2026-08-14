@@ -5,18 +5,19 @@ coverage
 .env.local
 .DS_Store
 yarn-error.log
+*.tfstate
+*.tfstate.*
+.terraform/
+infra/terraform/backend.hcl
+infra/terraform/terraform.tfvars
 
-# Agents
-# 에이전트별 로컬 설정은 커밋하지 않는다. 단 .claude/skills/는 예외다 —
-# SDD 파이프라인(speckit-*)이 여기 있고, 그게 커밋되지 않으면 파생 프로젝트로
-# 파이프라인이 따라가지 않아 이 스캐폴드의 절차가 무의미해진다.
+# Agent runtime state는 제외하고, 프로젝트 스킬은 Claude/Codex 각각 추적한다.
 /.claude/*
 !/.claude/skills/
+!/.claude/skills/**
 /.omc/
 /.codex/
 /.omx/
-/.agents/
-/AGENTS.md
-
-# spec-kit 런타임 상태 (현재 작업 중인 기능 포인터)
-/.specify/feature.json
+/.agents/*
+!/.agents/skills/
+!/.agents/skills/**

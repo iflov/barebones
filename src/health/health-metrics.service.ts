@@ -3,7 +3,7 @@ import { ModuleRef } from '@nestjs/core';
 import { Gauge } from 'prom-client';
 
 import { MetricsService } from '../infra/metrics/metrics.service';
-import { HealthChecksService } from './health-checks.service';
+import { HealthCoordinator } from './application/health.coordinator';
 
 /**
  * 헬스체크 결과를 Prometheus Gauge 메트릭으로 노출하는 서비스
@@ -21,7 +21,7 @@ import { HealthChecksService } from './health-checks.service';
  *           → registry.metrics()
  *             → prom-client가 이 Gauge의 collect 콜백 자동 실행
  *               → gauge.reset() (이전 값 초기화)
- *               → healthChecksService.inspectIndicators() (DB, Redis 등 체크)
+ *               → healthCoordinator.inspectIndicators() (DB, Redis 등 체크)
  *               → gauge.set({ indicator: 'database' }, 1) 등 값 세팅
  *             → 텍스트로 직렬화하여 반환
  *
@@ -48,7 +48,7 @@ export class HealthMetricsService implements OnModuleInit {
      * ModuleRef + onModuleInit 조합으로 느슨하게 연결한다.
      */
     private readonly moduleRef: ModuleRef,
-    private readonly healthChecksService: HealthChecksService,
+    private readonly healthCoordinator: HealthCoordinator,
   ) {}
 
   onModuleInit(): void {
@@ -104,7 +104,7 @@ export class HealthMetricsService implements OnModuleInit {
       collect: async () => {
         gauge.reset();
 
-        const statuses = await this.healthChecksService.inspectIndicators();
+        const statuses = await this.healthCoordinator.inspectIndicators();
 
         Object.entries(statuses).forEach(([indicator, value]) => {
           gauge.set({ indicator }, value);

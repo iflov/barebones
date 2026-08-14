@@ -15,6 +15,7 @@ import { isFeatureEnabled } from './redis.config';
 export interface FeatureFlags {
   readonly bullmq: boolean;
   readonly metrics: boolean;
+  readonly mongodb: boolean;
   readonly redis: boolean;
 }
 
@@ -22,6 +23,7 @@ export function resolveFeatureFlags(env: NodeJS.ProcessEnv = process.env): Featu
   return {
     bullmq: isFeatureEnabled(env.BULLMQ_ENABLED),
     metrics: isFeatureEnabled(env.PROMETHEUS_ENABLED),
+    mongodb: isFeatureEnabled(env.MONGODB_ENABLED),
     redis: isFeatureEnabled(env.REDIS_ENABLED),
   };
 }

@@ -1,21 +1,12 @@
-import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
-import type { Queue } from 'bullmq';
+import { Inject, Injectable } from '@nestjs/common';
 
-import { BACKGROUND_JOBS_QUEUE } from './background-jobs.constants';
+import { MESSAGE_QUEUE, type MessageQueuePort } from '../../common/messaging/message-queue.port';
 
 @Injectable()
 export class BackgroundJobsService {
-  constructor(
-    @InjectQueue(BACKGROUND_JOBS_QUEUE)
-    private readonly queue: Queue,
-  ) {}
+  constructor(@Inject(MESSAGE_QUEUE) private readonly queue: MessageQueuePort) {}
 
   async enqueue(name: string, payload: Record<string, unknown>): Promise<void> {
-    await this.queue.add(name, payload, {
-      attempts: 3,
-      removeOnComplete: true,
-      removeOnFail: false,
-    });
+    await this.queue.publish({ name, payload });
   }
 }

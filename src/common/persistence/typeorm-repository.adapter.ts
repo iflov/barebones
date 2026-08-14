@@ -110,7 +110,7 @@ export class TypeOrmRepositoryAdapter<T extends ObjectLiteral> implements IRepos
       this.repository.update(criteria, patch as QueryDeepPartialEntity<T>),
     );
 
-    // 드라이버가 affected를 보고하지 않는 경우가 있어(sqljs 등) 0으로 떨어뜨린다.
+    // 드라이버가 affected를 보고하지 않는 경우는 0으로 떨어뜨린다.
     return result.affected ?? 0;
   }
 
@@ -236,7 +236,6 @@ export class TypeOrmRepositoryAdapter<T extends ObjectLiteral> implements IRepos
  * 드라이버별 신호가 다 다르다:
  * - postgres(`pg`) — `code === '23505'`, 제약 이름은 `constraint`
  * - mysql / mariadb(`mysql2`) — `code === 'ER_DUP_ENTRY'` 또는 `errno === 1062`
- * - sqlite / sqljs — 코드가 없고 메시지가 `UNIQUE constraint failed: table.column`
  *
  * 알아보지 못한 에러는 **그대로 다시 던진다.** 유니크 위반으로 오분류하면
  * 진짜 DB 장애가 409로 나가서 클라이언트가 재시도하지 않는다.
@@ -263,11 +262,10 @@ function uniqueConstraintOf(error: unknown): string | undefined | null {
     return null;
   }
 
-  const { code, constraint, errno, message } = driverError as {
+  const { code, constraint, errno } = driverError as {
     code?: unknown;
     constraint?: unknown;
     errno?: unknown;
-    message?: unknown;
   };
 
   if (code === '23505') {
@@ -276,10 +274,6 @@ function uniqueConstraintOf(error: unknown): string | undefined | null {
 
   if (code === 'ER_DUP_ENTRY' || errno === 1062) {
     return undefined;
-  }
-
-  if (typeof message === 'string' && message.includes('UNIQUE constraint failed')) {
-    return message.split('UNIQUE constraint failed:')[1]?.trim();
   }
 
   return null;

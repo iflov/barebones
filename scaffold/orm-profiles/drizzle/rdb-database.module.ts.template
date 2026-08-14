@@ -1,0 +1,37 @@
+import { Global, Injectable, Module, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+__DRIVER_IMPORTS__
+
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
+
+export const DRIZZLE_DB = Symbol('DRIZZLE_DB');
+
+@Injectable()
+class DrizzleDatabaseService implements OnModuleDestroy {
+  readonly db: __DB_TYPE__;
+  __CLIENT_FIELD__
+
+  constructor(config: ConfigService) {
+    __CLIENT_CREATE__
+    this.db = __DRIZZLE_CREATE__;
+  }
+
+  async ping(): Promise<void> {
+    __PING__
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    __DESTROY__
+  }
+}
+
+@Global()
+@Module({
+  providers: [
+    DrizzleDatabaseService,
+    { provide: DRIZZLE_DB, useFactory: (service: DrizzleDatabaseService) => service.db, inject: [DrizzleDatabaseService] },
+    { provide: RDB_HEALTH_PROBE, useExisting: DrizzleDatabaseService },
+  ],
+  exports: [DRIZZLE_DB, RDB_HEALTH_PROBE],
+})
+export class RdbDatabaseModule {}

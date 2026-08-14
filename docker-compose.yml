@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: app
     restart: unless-stopped
     # 이 compose는 **로컬 개발 환경**이다. 이미지의 기본 CMD(`yarn start:prod`)를 덮어써
     # watch 모드로 띄우고, 소스를 마운트해서 호스트의 수정이 바로 반영되게 한다.
@@ -19,6 +18,8 @@ services:
       - ./config:/app/config
     depends_on:
       postgres:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
       # started가 아니라 healthy를 기다린다. started만 보면 Redis가 아직 응답하지 않는
       # 상태에서 app이 떠서, Redis를 쓰는 기능(cache / BullMQ)이 부팅 직후 실패한다.
@@ -54,7 +55,15 @@ services:
       BULLMQ_ENABLED: ${BULLMQ_ENABLED:-true}
       BULLMQ_PREFIX: ${BULLMQ_PREFIX:-app}
       PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
-      DB_TYPE: ${DB_TYPE:-postgres}
+      MONGODB_ENABLED: ${MONGODB_ENABLED:-true}
+      MONGODB_URI: ${MONGODB_URI:-}
+      MONGODB_HOST: ${DOCKER_MONGODB_HOST:-mongodb}
+      MONGODB_PORT: ${MONGODB_PORT:-27017}
+      MONGODB_USERNAME: ${MONGODB_USERNAME:-app}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD:-app}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-app}
+      MONGODB_AUTH_SOURCE: ${MONGODB_AUTH_SOURCE:-admin}
+      DB_TYPE: postgres
       DB_HOST: ${DOCKER_DB_HOST:-postgres}
       DB_PORT: ${DB_PORT:-5432}
       DB_USERNAME: ${DB_USERNAME:-app}
@@ -70,7 +79,6 @@ services:
 
   postgres:
     image: postgres:17-alpine
-    container_name: postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_DATABASE:-app}
@@ -88,7 +96,6 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    container_name: redis
     restart: unless-stopped
     ports:
       - '${REDIS_HOST_PORT:-6379}:6379'
@@ -115,9 +122,30 @@ services:
       timeout: 3s
       retries: 5
 
+  mongodb:
+    image: mongo:8.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-app}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-app}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-app}
+    ports:
+      - '${MONGODB_HOST_PORT:-27017}:27017'
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --username "$$MONGO_INITDB_ROOT_USERNAME"
+          --password "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin
+          --eval "quit(db.adminCommand('ping').ok ? 0 : 2)"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   loki:
     image: grafana/loki:3.4.6
-    container_name: loki
     restart: unless-stopped
     ports:
       - '${LOKI_HOST_PORT:-3100}:3100'
@@ -125,7 +153,6 @@ services:
 
   prometheus:
     image: prom/prometheus:v3.5.1
-    container_name: prometheus
     restart: unless-stopped
     depends_on:
       - app
@@ -136,7 +163,6 @@ services:
 
   grafana:
     image: grafana/grafana:11.6
-    container_name: grafana
     restart: unless-stopped
     depends_on:
       - loki
@@ -154,4 +180,5 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  mongodb-data:
   grafana-data:

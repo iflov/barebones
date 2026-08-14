@@ -124,7 +124,7 @@ describe('RedisService', () => {
     // 항상 통과했지만, 실제 ioredis에서는 keyPrefix 때문에 0개를 지운다는 사실은 검증하지
     // 못했다. "구현을 통째로 mock으로 바꿔도 통과하는가?" — 통과했다.
 
-    it('supports set membership helpers for session indexes', async () => {
+    it('supports generic set membership helpers', async () => {
       const config = createConfigService({ REDIS_ENABLED: 'true' });
       const service = new RedisService(config);
       const client = service.getClient()!;

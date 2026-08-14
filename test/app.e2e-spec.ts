@@ -52,6 +52,12 @@ describe('AppController (e2e)', () => {
     expect(response.text).toContain('app_health_check_status{indicator="database"}');
     // 게이지가 사라지지 않고 0으로 남아야 알람 룰이 발동할 대상이 생긴다 (constitution E-1).
     expect(response.text).toContain('app_health_check_status{indicator="redis"} 0');
+
+    if (process.env.MONGODB_ENABLED === 'true') {
+      expect(response.text).toContain('app_health_check_status{indicator="mongodb"} 1');
+    } else {
+      expect(response.text).not.toContain('app_health_check_status{indicator="mongodb"}');
+    }
   });
 
   /**

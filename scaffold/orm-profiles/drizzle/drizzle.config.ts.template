@@ -1,0 +1,8 @@
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
+  dialect: '__DRIZZLE_DIALECT__',
+  out: './src/database/migrations',
+  schema: './src/infra/rdb/schema.ts',
+  dbCredentials: { url: process.env.DATABASE_URL ?? '__DATABASE_URL__' },
+});

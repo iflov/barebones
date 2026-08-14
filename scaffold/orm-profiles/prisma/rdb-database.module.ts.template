@@ -1,0 +1,39 @@
+import { Global, Injectable, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+__ADAPTER_IMPORT__
+
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
+import { PrismaClient } from '../../generated/prisma/client';
+
+export const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
+
+@Injectable()
+class PrismaDatabaseService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  constructor(config: ConfigService) {
+    __ADAPTER_CREATE__
+    super({ adapter });
+  }
+
+  async onModuleInit(): Promise<void> {
+    await this.$connect();
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.$disconnect();
+  }
+
+  async ping(): Promise<void> {
+    await this.$queryRawUnsafe('SELECT 1');
+  }
+}
+
+@Global()
+@Module({
+  providers: [
+    PrismaDatabaseService,
+    { provide: PRISMA_CLIENT, useExisting: PrismaDatabaseService },
+    { provide: RDB_HEALTH_PROBE, useExisting: PrismaDatabaseService },
+  ],
+  exports: [PRISMA_CLIENT, RDB_HEALTH_PROBE],
+})
+export class RdbDatabaseModule {}

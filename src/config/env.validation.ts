@@ -1,6 +1,10 @@
 import * as Joi from 'joi';
 
+import { activeScaffold } from './active-scaffold';
 import { CORS_WILDCARD, hasWildcardOrigin, parseCorsOrigins } from './cors.config';
+
+const activeDbPort = activeScaffold.rdb.database === 'postgres' ? 5432 : 3306;
+const activeDockerDbHost = activeScaffold.rdb.database;
 
 /**
  * production에서 허용되는 `CORS_ORIGINS`.
@@ -85,12 +89,25 @@ export const validationSchema = Joi.object({
   BULLMQ_PREFIX: Joi.string().default('app'),
   PROMETHEUS_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
   PROMETHEUS_HOST_PORT: Joi.number().port().default(9090),
-  // 드라이버를 추가할 때 database.config.ts의 SupportedDbType과 함께 갱신한다.
-  DB_TYPE: Joi.string().valid('postgres', 'mysql', 'mariadb', 'sqljs').default('postgres'),
+  MONGODB_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  MONGODB_URI: Joi.string()
+    .uri({ scheme: ['mongodb', 'mongodb+srv'] })
+    .allow('')
+    .default(''),
+  MONGODB_HOST: Joi.string().hostname().default('localhost'),
+  DOCKER_MONGODB_HOST: Joi.string().hostname().default('mongodb'),
+  MONGODB_PORT: Joi.number().port().default(27017),
+  MONGODB_HOST_PORT: Joi.number().port().default(27017),
+  MONGODB_USERNAME: Joi.string().default('app'),
+  MONGODB_PASSWORD: Joi.string().min(1).default('app'),
+  MONGODB_DATABASE: Joi.string().default('app'),
+  MONGODB_AUTH_SOURCE: Joi.string().default('admin'),
+  // 생성 시 선택과 다른 드라이버로 런타임 전환하는 것을 막는다.
+  DB_TYPE: Joi.string().valid(activeScaffold.rdb.database).default(activeScaffold.rdb.database),
   DB_HOST: Joi.string().hostname().default('localhost'),
-  DOCKER_DB_HOST: Joi.string().hostname().default('postgres'),
-  DB_PORT: Joi.number().port().default(5432),
-  DB_HOST_PORT: Joi.number().port().default(5432),
+  DOCKER_DB_HOST: Joi.string().hostname().default(activeDockerDbHost),
+  DB_PORT: Joi.number().port().default(activeDbPort),
+  DB_HOST_PORT: Joi.number().port().default(activeDbPort),
   DB_USERNAME: Joi.string().default('app'),
   DB_PASSWORD: Joi.string().allow('').default('app'),
   DB_DATABASE: Joi.string().default('app'),
@@ -117,8 +134,6 @@ export const validationSchema = Joi.object({
       // '*'는 credentials와 함께 쓸 수 없고, 쓸 수 있더라도 그건 CORS를 끈 것과 같다.
       // 목록 안에 섞인 '*'까지 잡으려면 파싱된 형태를 봐야 한다 (위 productionCorsOrigins).
       CORS_ORIGINS: productionCorsOrigins,
-      // sqljs는 인메모리라 재시작마다 데이터가 사라진다. 운영 DB가 될 수 없다.
-      DB_TYPE: Joi.string().invalid('sqljs'),
       // TLS 신원 확인을 끈 채로 배포하는 것을 막는다. 암호화는 되지만 중간자를 구분할 수 없어
       // DB 비밀번호와 모든 쿼리가 평문으로 읽힌다 — 그런데 **작동은 한다**(database.config.ts 참고).
       DB_SSL_REJECT_UNAUTHORIZED: Joi.boolean().valid(true),

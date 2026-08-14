@@ -3,7 +3,7 @@ import { BackgroundJobsService } from './background-jobs.service';
 describe('BackgroundJobsService', () => {
   function createMocks() {
     const mockQueue = {
-      add: jest.fn().mockResolvedValue(undefined),
+      publish: jest.fn().mockResolvedValue(undefined),
     };
 
     const service = new (class extends BackgroundJobsService {
@@ -22,11 +22,7 @@ describe('BackgroundJobsService', () => {
 
       await service.enqueue('send-email', payload);
 
-      expect(mockQueue.add).toHaveBeenCalledWith('send-email', payload, {
-        attempts: 3,
-        removeOnComplete: true,
-        removeOnFail: false,
-      });
+      expect(mockQueue.publish).toHaveBeenCalledWith({ name: 'send-email', payload });
     });
 
     it('passes different job names and payloads correctly', async () => {
@@ -35,16 +31,12 @@ describe('BackgroundJobsService', () => {
 
       await service.enqueue('sync-user', payload);
 
-      expect(mockQueue.add).toHaveBeenCalledWith('sync-user', payload, {
-        attempts: 3,
-        removeOnComplete: true,
-        removeOnFail: false,
-      });
+      expect(mockQueue.publish).toHaveBeenCalledWith({ name: 'sync-user', payload });
     });
 
     it('awaits the queue.add call', async () => {
       const mockQueue = {
-        add: jest.fn().mockRejectedValue(new Error('Redis down')),
+        publish: jest.fn().mockRejectedValue(new Error('Broker down')),
       };
 
       const service = new (class extends BackgroundJobsService {
@@ -53,7 +45,7 @@ describe('BackgroundJobsService', () => {
         }
       })();
 
-      await expect(service.enqueue('test', {})).rejects.toThrow('Redis down');
+      await expect(service.enqueue('test', {})).rejects.toThrow('Broker down');
     });
   });
 });

@@ -2,24 +2,21 @@ import type { ConfigService } from '@nestjs/config';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { DataSourceOptions } from 'typeorm';
 
+import { activeScaffold } from './active-scaffold';
+
 /**
  * 지원 드라이버.
  *
- * 기본값은 `postgres`이고, `DB_TYPE`만 바꾸면 다른 드라이버로 붙는다 —
- * 코드 변경 없이 DB를 교체할 수 있는 지점이 여기다 (constitution A-3-D).
- * 새 값을 추가할 때는 `env.validation.ts`의 `valid(...)` 목록과 드라이버 패키지를
- * **같은 커밋에서** 함께 갱신한다.
+ * 프로젝트 생성기가 선택한 드라이버만 사용한다. 런타임 DB_TYPE으로 바꾸지 않는다.
  *
  * - `postgres` → `pg`
  * - `mysql` / `mariadb` → `mysql2`
- * - `sqljs` → `sql.js` (테스트 전용 인메모리)
- *
  * ORM 자체를 바꾸는 것은 이 스위치가 아니라 `src/common/persistence/`의
  * 어댑터를 교체하는 일이다 (A-1-P).
  */
-export type SupportedDbType = 'postgres' | 'mysql' | 'mariadb' | 'sqljs';
+export type SupportedDbType = 'postgres' | 'mysql' | 'mariadb';
 
-const DEFAULT_PORT_BY_TYPE: Record<Exclude<SupportedDbType, 'sqljs'>, number> = {
+const DEFAULT_PORT_BY_TYPE: Record<SupportedDbType, number> = {
   mariadb: 3306,
   mysql: 3306,
   postgres: 5432,
@@ -29,27 +26,6 @@ const MIGRATIONS = ['src/database/migrations/*{.ts,.js}'];
 
 function isTruthy(value: string | boolean | undefined): boolean {
   return value === true || value === 'true';
-}
-
-/**
- * sqljs는 **테스트 전용**이다. 마이그레이션 대신 `synchronize: true`로 스키마를 만든다.
- *
- * 이것이 C-1(스키마 변경은 마이그레이션으로만)의 예외인 이유: 인메모리 DB는 매 실행마다
- * 비어 있어서 마이그레이션 이력을 쌓을 대상이 없다. 대신 postgres 전용 문법에 의존하는
- * 코드는 테스트에서 깨진다는 대가가 있다 (C-2).
- */
-function buildSqljsOptions(logging: boolean): {
-  logging: boolean;
-  migrations: string[];
-  synchronize: true;
-  type: 'sqljs';
-} {
-  return {
-    logging,
-    migrations: MIGRATIONS,
-    synchronize: true,
-    type: 'sqljs',
-  };
 }
 
 interface SslOptions {
@@ -83,20 +59,8 @@ function buildSslOptions(read: (key: string) => string | undefined): SslOptions 
 }
 
 export function buildTypeOrmOptions(configService: ConfigService): TypeOrmModuleOptions {
-  const dbType = (configService.get<string>('DB_TYPE') ?? 'postgres') as SupportedDbType;
+  const dbType = activeScaffold.rdb.database;
   const logging = configService.get<boolean>('DB_LOGGING') ?? false;
-
-  if (dbType === 'sqljs') {
-    const sqljs = buildSqljsOptions(logging);
-
-    return {
-      autoLoadEntities: true,
-      logging: sqljs.logging,
-      migrations: sqljs.migrations,
-      synchronize: sqljs.synchronize,
-      type: sqljs.type,
-    };
-  }
 
   const read = (key: string): string | undefined => configService.get<string>(key);
 
@@ -133,21 +97,9 @@ export function buildTypeOrmOptions(configService: ConfigService): TypeOrmModule
  * A-3의 예외이며, **런타임 로직에는 적용되지 않는다.**
  */
 export function buildDataSourceOptionsFromEnv(env: NodeJS.ProcessEnv): DataSourceOptions {
-  const dbType = (env.DB_TYPE ?? 'postgres') as SupportedDbType;
+  const dbType = activeScaffold.rdb.database;
   const logging = env.DB_LOGGING === 'true';
   const entities = ['src/**/*.entity{.ts,.js}'];
-
-  if (dbType === 'sqljs') {
-    const sqljs = buildSqljsOptions(logging);
-
-    return {
-      entities,
-      logging: sqljs.logging,
-      migrations: sqljs.migrations,
-      synchronize: sqljs.synchronize,
-      type: sqljs.type,
-    };
-  }
 
   return {
     database: env.DB_DATABASE ?? 'app',

@@ -1,0 +1,8 @@
+aws_region      = "ap-northeast-2"
+project_name    = "barebones"
+environment     = "dev"
+container_image = "123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/barebones:latest"
+db_engine       = "postgres"
+
+# MongoDB Atlas 등 외부 MongoDB URI를 담은 Secrets Manager ARN. 사용하지 않으면 생략한다.
+# mongodb_secret_arn = "arn:aws:secretsmanager:ap-northeast-2:123456789012:secret:mongodb-uri"
