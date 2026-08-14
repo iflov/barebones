@@ -5,10 +5,11 @@ describe('resolveFeatureFlags', () => {
     expect(
       resolveFeatureFlags({
         BULLMQ_ENABLED: 'false',
+        MONGODB_ENABLED: 'true',
         PROMETHEUS_ENABLED: 'true',
         REDIS_ENABLED: 'true',
       }),
-    ).toEqual({ bullmq: false, metrics: true, redis: true });
+    ).toEqual({ bullmq: false, metrics: true, mongodb: true, redis: true });
   });
 
   /**
@@ -19,7 +20,12 @@ describe('resolveFeatureFlags', () => {
    * 정상 부팅한다. 그래서 main.ts가 결정된 값을 로그로 남긴다 (constitution E-1).
    */
   it('값이 없으면 전부 꺼진 것으로 본다', () => {
-    expect(resolveFeatureFlags({})).toEqual({ bullmq: false, metrics: false, redis: false });
+    expect(resolveFeatureFlags({})).toEqual({
+      bullmq: false,
+      metrics: false,
+      mongodb: false,
+      redis: false,
+    });
   });
 
   it.each(['', 'yes', '1', 'TRUE'])('%s는 켜진 것으로 보지 않는다', (value) => {

@@ -87,6 +87,14 @@ class ProbeRepository {
     return this.rows.count();
   }
 
+  async clear(): Promise<void> {
+    const rows = await this.rows.findMany();
+
+    for (const row of rows) {
+      await this.rows.remove({ id: row.id });
+    }
+  }
+
   rename(id: number, name: string): Promise<number> {
     return this.rows.update({ id }, { name: normalize(name) });
   }
@@ -123,13 +131,19 @@ describe('persistence port wiring (e2e)', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true, validationSchema }),
-        // 픽스처 엔티티만 올린 인메모리 DB. 옵션을 명시해서 쓴다 (constitution A-5) —
-        // 이 테스트의 대상은 포트 배선이고, DB 설정 파생은 database.config.spec.ts가 맡는다.
+        // docker-compose의 실제 PostgreSQL에 픽스처 엔티티를 올린다.
+        // 어댑터의 SQL 번역과 드라이버 에러 변환을 운영 기본 드라이버에서 검증한다.
         TypeOrmModule.forRoot({
+          database: process.env.DB_DATABASE,
           entities: [ProbeRow],
+          host: process.env.DB_HOST,
           logging: false,
+          password: process.env.DB_PASSWORD,
+          port: Number(process.env.DB_PORT),
+          schema: process.env.DB_SCHEMA,
           synchronize: true,
-          type: 'sqljs',
+          type: 'postgres',
+          username: process.env.DB_USERNAME,
         }),
         ProbeModule,
       ],
@@ -142,6 +156,10 @@ describe('persistence port wiring (e2e)', () => {
 
   afterAll(async () => {
     await close();
+  });
+
+  beforeEach(async () => {
+    await repository.clear();
   });
 
   it('resolves the domain repository through the port', () => {
@@ -261,6 +279,8 @@ describe('persistence port wiring (e2e)', () => {
   });
 
   it('count가 전체 행 수를 센다', async () => {
-    await expect(repository.countAll()).resolves.toBeGreaterThan(0);
+    await repository.add('Omicron', 'shhh');
+
+    await expect(repository.countAll()).resolves.toBe(1);
   });
 });

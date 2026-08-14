@@ -23,16 +23,11 @@ describe('buildTypeOrmOptions', () => {
     expect(asRecord(options).schema).toBe('public');
   });
 
-  /** DB 교체 지점 — 코드가 아니라 이 환경변수 하나로 갈린다 (constitution A-3-D). */
-  it.each([
-    ['postgres', 5432],
-    ['mysql', 3306],
-    ['mariadb', 3306],
-  ])('builds a %s config with the driver default port', (dbType, expectedPort) => {
-    const options = buildTypeOrmOptions(createConfigService({ DB_TYPE: dbType }));
+  it('does not allow a runtime DB_TYPE to override the generated selection', () => {
+    const options = buildTypeOrmOptions(createConfigService({ DB_TYPE: 'mariadb' }));
 
-    expect(options.type).toBe(dbType);
-    expect(asRecord(options).port).toBe(expectedPort);
+    expect(options.type).toBe('postgres');
+    expect(asRecord(options).port).toBe(5432);
   });
 
   it('DB_PORT가 있으면 드라이버 기본 포트를 덮어쓴다', () => {
@@ -43,10 +38,10 @@ describe('buildTypeOrmOptions', () => {
     expect(asRecord(options).port).toBe(6543);
   });
 
-  it('schema는 postgres에만 넘어간다 (다른 드라이버에는 없는 개념)', () => {
-    const mysql = buildTypeOrmOptions(createConfigService({ DB_SCHEMA: 'app', DB_TYPE: 'mysql' }));
+  it('선택된 postgres schema를 전달한다', () => {
+    const options = buildTypeOrmOptions(createConfigService({ DB_SCHEMA: 'app' }));
 
-    expect(asRecord(mysql).schema).toBeUndefined();
+    expect(asRecord(options).schema).toBe('app');
   });
 
   /**
@@ -92,12 +87,6 @@ describe('buildTypeOrmOptions', () => {
     expect(asRecord(buildTypeOrmOptions(createConfigService({}))).ssl).toBeUndefined();
   });
 
-  it('DB_SSL이 없으면 mysql에도 ssl 값이 없다', () => {
-    expect(
-      asRecord(buildTypeOrmOptions(createConfigService({ DB_TYPE: 'mysql' }))).ssl,
-    ).toBeUndefined();
-  });
-
   /** constitution C-1 — 이 값이 true가 되는 변경은 금지다. */
   it('never enables synchronize for a real driver', () => {
     expect(
@@ -110,23 +99,6 @@ describe('buildTypeOrmOptions', () => {
 
     expect(options.logging).toBe(true);
   });
-
-  describe('sqljs', () => {
-    it('uses synchronize instead of migrations (인메모리라 이력을 쌓을 대상이 없다)', () => {
-      const options = buildTypeOrmOptions(createConfigService({ DB_TYPE: 'sqljs' }));
-
-      expect(options.type).toBe('sqljs');
-      expect(asRecord(options).synchronize).toBe(true);
-    });
-
-    it('does not carry connection fields', () => {
-      const options = asRecord(buildTypeOrmOptions(createConfigService({ DB_TYPE: 'sqljs' })));
-
-      expect(options.host).toBeUndefined();
-      expect(options.port).toBeUndefined();
-      expect(options.ssl).toBeUndefined();
-    });
-  });
 });
 
 describe('buildDataSourceOptionsFromEnv', () => {
@@ -137,11 +109,11 @@ describe('buildDataSourceOptionsFromEnv', () => {
     expect(asRecord(options).port).toBe(5432);
   });
 
-  it('reads the driver from DB_TYPE', () => {
+  it('ignores a runtime DB_TYPE that differs from the generated selection', () => {
     const options = buildDataSourceOptionsFromEnv({ DB_TYPE: 'mariadb' });
 
-    expect(options.type).toBe('mariadb');
-    expect(asRecord(options).port).toBe(3306);
+    expect(options.type).toBe('postgres');
+    expect(asRecord(options).port).toBe(5432);
   });
 
   it('coerces DB_PORT from a string (process.env는 전부 문자열이다)', () => {

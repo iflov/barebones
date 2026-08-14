@@ -11,7 +11,7 @@ function createMocks(inspectResult: Record<string, number> = { database: 1, redi
     getPrefix: () => 'test_',
   };
 
-  const healthChecksService = {
+  const healthCoordinator = {
     inspectIndicators: jest.fn().mockResolvedValue(inspectResult),
   };
   const moduleRef = {
@@ -20,11 +20,11 @@ function createMocks(inspectResult: Record<string, number> = { database: 1, redi
 
   const service = new HealthMetricsService(
     moduleRef as unknown as ModuleRef,
-    healthChecksService as never,
+    healthCoordinator as never,
   );
   service.onModuleInit();
 
-  return { service, registry, healthChecksService, moduleRef };
+  return { service, registry, healthCoordinator, moduleRef };
 }
 
 describe('HealthMetricsService', () => {
@@ -41,7 +41,7 @@ describe('HealthMetricsService', () => {
         getRegistry: () => registry,
         getPrefix: () => 'test_',
       };
-      const healthChecksService = {
+      const healthCoordinator = {
         inspectIndicators: jest.fn().mockResolvedValue({}),
       };
       const moduleRef = {
@@ -50,13 +50,13 @@ describe('HealthMetricsService', () => {
 
       const first = new HealthMetricsService(
         moduleRef as unknown as ModuleRef,
-        healthChecksService as never,
+        healthCoordinator as never,
       );
       first.onModuleInit();
 
       const second = new HealthMetricsService(
         moduleRef as unknown as ModuleRef,
-        healthChecksService as never,
+        healthCoordinator as never,
       );
       second.onModuleInit();
 
@@ -78,21 +78,21 @@ describe('HealthMetricsService', () => {
     });
 
     it('calls inspectIndicators on each scrape', async () => {
-      const { registry, healthChecksService } = createMocks();
+      const { registry, healthCoordinator } = createMocks();
 
       await registry.metrics();
       await registry.metrics();
 
-      expect(healthChecksService.inspectIndicators).toHaveBeenCalledTimes(2);
+      expect(healthCoordinator.inspectIndicators).toHaveBeenCalledTimes(2);
     });
 
     it('resets previous values before setting new ones', async () => {
-      const { registry, healthChecksService } = createMocks({ database: 1, redis: 1 });
+      const { registry, healthCoordinator } = createMocks({ database: 1, redis: 1 });
 
       await registry.metrics();
 
       // 두 번째 스크랩에서 redis가 사라짐
-      healthChecksService.inspectIndicators.mockResolvedValue({ database: 1 });
+      healthCoordinator.inspectIndicators.mockResolvedValue({ database: 1 });
       const metrics = await registry.metrics();
 
       expect(metrics).toContain('indicator="database"');

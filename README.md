@@ -17,7 +17,7 @@ Barebones는 **중립적인 시작점만 제공하는 NestJS 스캐폴드**다.
 - NestJS 11 부트스트랩 + graceful shutdown (드레인 타임아웃 포함)
 - `@nestjs/config` + Joi 환경변수 검증 (**검증 실패 = 부팅 실패**, production 강화 규칙 포함)
 - `nestjs-pino` 구조화 로그 → Loki
-- TypeORM + **영속화 포트**(`IRepository<T>`) — `postgres` 기본 / `mysql` / `mariadb` / 테스트 `sqljs`
+- TypeORM + **영속화 포트**(`IRepository<T>`) — `postgres` 기본 / `mysql` / `mariadb`
 - Redis / CacheModule / BullMQ
 - Prometheus metrics + Grafana 대시보드 5종 (설정 1개에서 **생성**)
 - Health Check (DB + Redis + Memory + Disk) — 비활성 의존성도 목록에서 빼지 않고 `down`으로 보고
@@ -78,7 +78,7 @@ Service  →  <Domain>Repository  →  IRepository<T>  →  TypeOrmRepositoryAda
          ↑ 도메인 시그니처만    ↑ 포트 경계 (src/common/persistence/)
 ```
 
-- **DB 드라이버 교체**: `DB_TYPE`만 바꾼다 (`postgres` / `mysql` / `mariadb` / `sqljs`). 코드 변경 없음.
+- **DB 드라이버 교체**: `DB_TYPE`만 바꾼다 (`postgres` / `mysql` / `mariadb`). 코드 변경 없음.
 - **ORM 교체**: `src/common/persistence/`의 어댑터 하나를 새로 쓴다. 도메인 코드는 그대로.
 - 포트는 **Repository와 ORM 사이**에 있다. Service와 Repository 사이가 아니다 —
   그 이유는 `constitution.md` A-1-P에 있다(한 칸만 올리면 테이블 불변식이 선택사항이 된다).

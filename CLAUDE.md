@@ -214,7 +214,7 @@ interface IRepository<T> {
 `update`의 **빈 `patch`는 예외가 아니다** — `0`을 돌려주는 no-op이다("변경된 필드만 담는" 패턴이 흔하다).
 
 **`UniqueConstraintError`** — 유니크 위반은 드라이버 무관 포트 에러로 올라온다
-(postgres `23505` / mysql `1062` / sqlite 메시지를 어댑터가 번역한다).
+(postgres `23505` / mysql·mariadb `1062`를 어댑터가 번역한다).
 **Service가 `ConflictException`(409)으로 바꾼다** — 안 바꾸면 500이 되고 클라이언트는
 "내 요청이 잘못됐다"와 "서버가 고장났다"를 구분할 수 없다.
 
@@ -316,7 +316,6 @@ export class FooRepository {
 DB_TYPE=postgres   # 기본. pg
 DB_TYPE=mysql      # mysql2
 DB_TYPE=mariadb    # mysql2
-DB_TYPE=sqljs      # 테스트 전용 인메모리. production에서는 부팅이 거부된다
 ```
 
 포트 기본값은 드라이버에서 결정된다(postgres 5432 / mysql·mariadb 3306). `DB_PORT`로 덮어쓴다.

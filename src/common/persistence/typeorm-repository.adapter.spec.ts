@@ -222,7 +222,6 @@ describe('TypeOrmRepositoryAdapter', () => {
       ['postgres', { code: '23505', constraint: 'uq_users_email' }, 'uq_users_email'],
       ['mysql code', { code: 'ER_DUP_ENTRY' }, undefined],
       ['mysql errno', { errno: 1062 }, undefined],
-      ['sqlite message', { message: 'UNIQUE constraint failed: users.email' }, 'users.email'],
     ])('%s 위반을 UniqueConstraintError로 바꾼다', async (_driver, driverError, constraint) => {
       repository.insert.mockRejectedValue(
         Object.assign(new Error('query failed'), { driverError }),

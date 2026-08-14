@@ -51,7 +51,7 @@ function logBootConfiguration(logger: Logger): void {
 
   logger.log(
     `Boot config — redis=${featureFlags.redis} bullmq=${featureFlags.bullmq} ` +
-      `metrics=${featureFlags.metrics} | env files: ${envFiles}`,
+      `metrics=${featureFlags.metrics} mongodb=${featureFlags.mongodb} | env files: ${envFiles}`,
   );
 }
 

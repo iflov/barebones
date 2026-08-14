@@ -111,7 +111,7 @@ export class RepositoryContractError extends Error {
  * 유니크 제약 위반.
  *
  * **드라이버 에러코드를 도메인이 알 필요가 없게 만드는 것이 이 클래스의 목적이다.**
- * postgres는 `23505`, mysql은 `1062`, sqlite는 메시지 문자열로 알려준다 — 그 지식은
+ * postgres는 `23505`, mysql·mariadb는 `1062`로 알려준다 — 그 지식은
  * 어댑터(A-1-R)에 있고, 밖으로는 이 하나의 타입만 나온다. DB를 바꿔도 호출부는 안 바뀐다.
  *
  * ## 왜 예외를 잡아서 다시 던지나 — 사전 조회로는 못 막는다

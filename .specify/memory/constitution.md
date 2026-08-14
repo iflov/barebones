@@ -59,7 +59,7 @@ Service  →  <Domain>Repository  →  IRepository<T>  →  TypeOrmRepositoryAda
 
 **유니크 위반은 포트 에러로 번역한다 (A-1-P-U)**
 
-- 어댑터가 드라이버별 신호(postgres `23505` / mysql `1062` / sqlite 메시지)를
+- 어댑터가 드라이버별 신호(postgres `23505` / mysql·mariadb `1062`)를
   `UniqueConstraintError` **하나로** 바꾼다. 그 지식은 어댑터에만 있어야 한다 (A-1-R) —
   도메인이 에러코드를 알면 DB를 바꿀 때 도메인 코드가 따라 바뀐다.
 - 알아보지 못한 에러는 **그대로 다시 던진다.** 유니크 위반으로 오분류하면 진짜 DB 장애가
@@ -340,10 +340,10 @@ const ssl = { ...(ca ? { ca } : {}), rejectUnauthorized };
 
 **테스트 DB (C-2)**
 
-- 단위/E2E 테스트는 `sqljs`로 돌아간다. 인메모리라 마이그레이션 이력을 쌓을 대상이 없어서
-  이 드라이버만 `synchronize: true`다 — C-1의 유일한 예외이며 **production에서는 거부된다.**
-- 특정 드라이버 전용 문법(타입, 확장 함수)에 의존하는 코드는 테스트에서 깨진다.
-  필요하면 `plan.md`에 그 사실과 대응(통합 테스트 분리 등)을 적는다.
+- E2E는 docker-compose의 실제 PostgreSQL에서 돌아간다. 운영 기본 드라이버의 SQL 번역,
+  제약조건, 드라이버 에러 변환을 인메모리 대역으로 가리지 않는다.
+- 테스트 픽스처 전용 테이블에만 `synchronize: true`를 허용한다. 운영 엔티티와 마이그레이션은
+  계속 C-1을 따른다.
 
 ### VIII. 테스트 동반 (D-1 ~ D-3) — NON-NEGOTIABLE
 

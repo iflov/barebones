@@ -40,6 +40,15 @@ describe('validationSchema', () => {
       expect(value.BULLMQ_PREFIX).toBe('app');
       expect(value.PROMETHEUS_ENABLED).toBe(true);
       expect(value.PROMETHEUS_HOST_PORT).toBe(9090);
+      expect(value.MONGODB_ENABLED).toBe(true);
+      expect(value.MONGODB_HOST).toBe('localhost');
+      expect(value.DOCKER_MONGODB_HOST).toBe('mongodb');
+      expect(value.MONGODB_PORT).toBe(27017);
+      expect(value.MONGODB_HOST_PORT).toBe(27017);
+      expect(value.MONGODB_USERNAME).toBe('app');
+      expect(value.MONGODB_PASSWORD).toBe('app');
+      expect(value.MONGODB_DATABASE).toBe('app');
+      expect(value.MONGODB_AUTH_SOURCE).toBe('admin');
       expect(value.DB_TYPE).toBe('postgres');
       expect(value.DB_HOST).toBe('localhost');
       expect(value.DOCKER_DB_HOST).toBe('postgres');
@@ -93,7 +102,16 @@ describe('validationSchema', () => {
         BULLMQ_PREFIX: 'myapp',
         PROMETHEUS_ENABLED: false,
         PROMETHEUS_HOST_PORT: 9091,
-        DB_TYPE: 'sqljs',
+        MONGODB_ENABLED: true,
+        MONGODB_HOST: 'mongo.example.com',
+        DOCKER_MONGODB_HOST: 'mongodb',
+        MONGODB_PORT: 27018,
+        MONGODB_HOST_PORT: 27018,
+        MONGODB_USERNAME: 'mongo-user',
+        MONGODB_PASSWORD: 'mongo-pass',
+        MONGODB_DATABASE: 'mongo-app',
+        MONGODB_AUTH_SOURCE: 'admin',
+        DB_TYPE: 'postgres',
         DB_HOST: 'db.example.com',
         DOCKER_DB_HOST: 'my-postgres',
         DB_PORT: 5433,
@@ -113,16 +131,24 @@ describe('validationSchema', () => {
 
       expect(error).toBeUndefined();
       expect(value.APP_PORT).toBe(8080);
-      expect(value.DB_TYPE).toBe('sqljs');
+      expect(value.DB_TYPE).toBe('postgres');
       expect(value.DB_SCHEMA).toBe('app');
       expect(value.REDIS_DB).toBe(2);
+      expect(value.MONGODB_PORT).toBe(27018);
     });
 
-    it.each(['postgres', 'mysql', 'mariadb', 'sqljs'])('accepts DB_TYPE = %s', (dbType) => {
-      const { value, error } = validationSchema.validate({ DB_TYPE: dbType });
+    it('accepts the generated DB_TYPE', () => {
+      const { value, error } = validationSchema.validate({ DB_TYPE: 'postgres' });
 
       expect(error).toBeUndefined();
-      expect(value.DB_TYPE).toBe(dbType);
+      expect(value.DB_TYPE).toBe('postgres');
+    });
+
+    it.each(['mysql', 'mariadb'])('rejects runtime DB_TYPE override = %s', (dbType) => {
+      const { error } = validationSchema.validate({ DB_TYPE: dbType });
+
+      expect(error).toBeDefined();
+      expect(error!.details[0].message).toContain('DB_TYPE');
     });
   });
 
@@ -152,7 +178,11 @@ describe('validationSchema', () => {
       ['REDIS_PORT', 70000, '"REDIS_PORT" must be a valid port'],
       ['REDIS_DB', -1, '"REDIS_DB" must be greater than or equal to 0'],
       ['CACHE_TTL', 0, '"CACHE_TTL" must be a positive number'],
-      ['DB_TYPE', 'oracle', '"DB_TYPE" must be one of'],
+      ['MONGODB_HOST', '!!!invalid', '"MONGODB_HOST" must be a valid hostname'],
+      ['DOCKER_MONGODB_HOST', '!!!invalid', '"DOCKER_MONGODB_HOST" must be a valid hostname'],
+      ['MONGODB_PORT', 70000, '"MONGODB_PORT" must be a valid port'],
+      ['MONGODB_HOST_PORT', 70000, '"MONGODB_HOST_PORT" must be a valid port'],
+      ['DB_TYPE', 'oracle', '"DB_TYPE" must be [postgres]'],
       ['DB_HOST', '!!!invalid', '"DB_HOST" must be a valid hostname'],
       ['DOCKER_DB_HOST', '!!!invalid', '"DOCKER_DB_HOST" must be a valid hostname'],
       ['DB_PORT', 99999, '"DB_PORT" must be a valid port'],
@@ -270,13 +300,6 @@ describe('validationSchema', () => {
       expect(error!.details[0].message).toContain('CORS_ORIGINS');
     });
 
-    it('rejects DB_TYPE = sqljs — 인메모리는 운영 DB가 될 수 없다', () => {
-      const { error } = validationSchema.validate(productionEnv({ DB_TYPE: 'sqljs' }));
-
-      expect(error).toBeDefined();
-      expect(error!.details[0].message).toContain('DB_TYPE');
-    });
-
     /**
      * 암호화는 되지만 중간자를 구분할 수 없는 상태로 배포되는 것을 막는다.
      * "작동은 하므로" 리뷰나 모니터링으로 잡히지 않는 종류의 설정이다.
@@ -323,6 +346,8 @@ describe('validationSchema', () => {
       ['BULLMQ_ENABLED', 'false', false],
       ['PROMETHEUS_ENABLED', 'true', true],
       ['PROMETHEUS_ENABLED', 'false', false],
+      ['MONGODB_ENABLED', 'true', true],
+      ['MONGODB_ENABLED', 'false', false],
       ['DB_LOGGING', 'true', true],
       ['DB_LOGGING', 'false', false],
       ['DB_SSL', 'true', true],
