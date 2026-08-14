@@ -41,6 +41,7 @@ describe('validationSchema', () => {
       expect(value.PROMETHEUS_ENABLED).toBe(true);
       expect(value.PROMETHEUS_HOST_PORT).toBe(9090);
       expect(value.MONGODB_ENABLED).toBe(true);
+      expect(value.MONGODB_URI).toBe('');
       expect(value.MONGODB_HOST).toBe('localhost');
       expect(value.DOCKER_MONGODB_HOST).toBe('mongodb');
       expect(value.MONGODB_PORT).toBe(27017);
@@ -103,6 +104,7 @@ describe('validationSchema', () => {
         PROMETHEUS_ENABLED: false,
         PROMETHEUS_HOST_PORT: 9091,
         MONGODB_ENABLED: true,
+        MONGODB_URI: 'mongodb+srv://cluster.example/app',
         MONGODB_HOST: 'mongo.example.com',
         DOCKER_MONGODB_HOST: 'mongodb',
         MONGODB_PORT: 27018,
@@ -179,6 +181,7 @@ describe('validationSchema', () => {
       ['REDIS_DB', -1, '"REDIS_DB" must be greater than or equal to 0'],
       ['CACHE_TTL', 0, '"CACHE_TTL" must be a positive number'],
       ['MONGODB_HOST', '!!!invalid', '"MONGODB_HOST" must be a valid hostname'],
+      ['MONGODB_URI', 'https://example.com', '"MONGODB_URI" must be a valid uri'],
       ['DOCKER_MONGODB_HOST', '!!!invalid', '"DOCKER_MONGODB_HOST" must be a valid hostname'],
       ['MONGODB_PORT', 70000, '"MONGODB_PORT" must be a valid port'],
       ['MONGODB_HOST_PORT', 70000, '"MONGODB_HOST_PORT" must be a valid port'],

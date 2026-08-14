@@ -55,8 +55,8 @@ export class RedisService implements OnModuleDestroy {
   // delByPrefix()는 제거했다. **조용히 실패하는 API였기 때문이다.**
   //
   // ioredis의 `keyPrefix`는 키 인자에는 붙지만 SCAN의 MATCH 패턴에는 붙지 않는다:
-  //   SCAN 0 MATCH 'auth:*'  →  실제 키는 'app:auth:...'이므로 0개 발견
-  //   DEL  'app:auth:x'      →  'app:app:auth:x'로 또 붙어서 0개 삭제
+  //   SCAN 0 MATCH 'cache:*'  →  실제 키는 'app:cache:...'이므로 0개 발견
+  //   DEL  'app:cache:x'      →  'app:app:cache:x'로 또 붙어서 0개 삭제
   // 즉 무엇을 넘겨도 결과가 0인데 **에러는 안 난다.** 나중에 누가 "있으니까 쓰겠지" 하고
   // 로그아웃이나 캐시 무효화에 쓰면 "지웠다고 생각했는데 살아 있는" 상태가 된다.
   //

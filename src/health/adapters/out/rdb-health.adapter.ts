@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { TypeOrmHealthIndicator } from '@nestjs/terminus';
+import { Inject, Injectable } from '@nestjs/common';
 
+import {
+  RDB_HEALTH_PROBE,
+  type RdbHealthProbePort,
+} from '../../../common/persistence/rdb-health-probe.port';
 import type {
   HealthIndicatorPort,
   HealthIndicatorSnapshot,
@@ -10,10 +13,10 @@ import type {
 export class RdbHealthAdapter implements HealthIndicatorPort {
   readonly key = 'database';
 
-  constructor(private readonly database: TypeOrmHealthIndicator) {}
+  constructor(@Inject(RDB_HEALTH_PROBE) private readonly database: RdbHealthProbePort) {}
 
   async check(): Promise<HealthIndicatorSnapshot> {
-    const result = await this.database.pingCheck(this.key);
-    return { status: result[this.key]?.status === 'up' ? 'up' : 'down' };
+    await this.database.ping();
+    return { status: 'up' };
   }
 }

@@ -16,6 +16,7 @@ process.env.REDIS_ENABLED = 'false';
 process.env.BULLMQ_ENABLED = 'false';
 process.env.PROMETHEUS_ENABLED = 'true';
 process.env.MONGODB_ENABLED ??= 'false';
+process.env.MONGODB_URI ??= '';
 process.env.MONGODB_HOST ??= 'localhost';
 process.env.MONGODB_PORT ??= '27017';
 process.env.MONGODB_USERNAME ??= 'app';

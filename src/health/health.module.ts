@@ -2,6 +2,7 @@ import { Module, type Type } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 
 import { featureFlags } from '../config/feature-flags';
+import { RdbDatabaseModule } from '../infra/rdb/rdb-database.module';
 import { RedisModule } from '../infra/redis/redis.module';
 import { HealthController } from './adapters/in/http/health.controller';
 import { DiskHealthAdapter } from './adapters/out/disk-health.adapter';
@@ -36,7 +37,7 @@ if (featureFlags.mongodb) {
  */
 @Module({
   controllers: [HealthController],
-  imports: [TerminusModule, RedisModule],
+  imports: [TerminusModule, RdbDatabaseModule, RedisModule],
   exports: [HealthCoordinator, HealthMetricsService, TerminusModule],
   providers: [
     ...healthAdapterTypes,

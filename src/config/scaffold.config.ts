@@ -31,22 +31,30 @@ interface OrmProfileContract {
 
 const ORM_PROFILE_CONTRACTS: Record<OrmChoice, OrmProfileContract> = {
   drizzle: {
-    appModuleMarker: 'DrizzleDatabaseModule',
+    appModuleMarker: "from 'drizzle-orm/",
     requiredDependencies: ['drizzle-orm'],
     requiredDevDependencies: ['drizzle-kit'],
-    requiredFiles: ['src/infra/rdb/drizzle/drizzle-database.module.ts', 'drizzle.config.ts'],
+    requiredFiles: [
+      'src/infra/rdb/rdb-database.module.ts',
+      'src/infra/rdb/schema.ts',
+      'drizzle.config.ts',
+    ],
   },
   mikroorm: {
     appModuleMarker: 'MikroOrmModule.forRoot',
-    requiredDependencies: ['@mikro-orm/core', '@mikro-orm/nestjs'],
+    requiredDependencies: ['@mikro-orm/core', '@mikro-orm/migrations', '@mikro-orm/nestjs'],
     requiredDevDependencies: [],
-    requiredFiles: ['src/infra/rdb/mikroorm/mikro-orm.config.ts'],
+    requiredFiles: ['src/infra/rdb/rdb-database.module.ts', 'src/infra/rdb/mikro-orm.config.ts'],
   },
   prisma: {
-    appModuleMarker: 'PrismaDatabaseModule',
+    appModuleMarker: 'PrismaClient',
     requiredDependencies: ['@prisma/client'],
     requiredDevDependencies: ['prisma'],
-    requiredFiles: ['src/infra/rdb/prisma/prisma-database.module.ts', 'prisma/schema.prisma'],
+    requiredFiles: [
+      'src/infra/rdb/rdb-database.module.ts',
+      'prisma/schema.prisma',
+      'prisma.config.ts',
+    ],
   },
   typeorm: {
     appModuleMarker: 'TypeOrmModule.forRootAsync',

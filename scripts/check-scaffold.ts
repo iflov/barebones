@@ -24,13 +24,13 @@ function main(): void {
   const packageManifest = readJson('package.json') as PackageManifest;
   const candidateFiles = [
     'drizzle.config.ts',
+    'prisma.config.ts',
     'prisma/schema.prisma',
     'src/common/persistence/typeorm-repository.adapter.ts',
     'src/config/typeorm-data-source.ts',
     'src/infra/rdb/rdb-database.module.ts',
-    'src/infra/rdb/drizzle/drizzle-database.module.ts',
-    'src/infra/rdb/mikroorm/mikro-orm.config.ts',
-    'src/infra/rdb/prisma/prisma-database.module.ts',
+    'src/infra/rdb/mikro-orm.config.ts',
+    'src/infra/rdb/schema.ts',
   ];
   const state: ScaffoldState = {
     activeScaffoldSource: readFileSync('src/config/active-scaffold.ts', 'utf8'),

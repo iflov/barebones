@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
 import { buildTypeOrmOptions } from '../../config/database.config';
 
 /**
@@ -17,6 +19,17 @@ import { buildTypeOrmOptions } from '../../config/database.config';
       useFactory: (configService: ConfigService) => buildTypeOrmOptions(configService),
     }),
   ],
-  exports: [TypeOrmModule],
+  providers: [
+    {
+      inject: [DataSource],
+      provide: RDB_HEALTH_PROBE,
+      useFactory: (dataSource: DataSource) => ({
+        ping: async (): Promise<void> => {
+          await dataSource.query('SELECT 1');
+        },
+      }),
+    },
+  ],
+  exports: [TypeOrmModule, RDB_HEALTH_PROBE],
 })
 export class RdbDatabaseModule {}

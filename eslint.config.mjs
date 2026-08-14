@@ -18,6 +18,7 @@ export default tseslint.config(
       'dist/**',
       'eslint.config.mjs',
       'node_modules/**',
+      'src/generated/**',
     ],
   },
   js.configs.recommended,
@@ -95,7 +96,7 @@ export default tseslint.config(
     // 깨져도 초록불이 된다. 엔티티 정의 데코레이터(@Entity/@Column)는 쿼리 표면이 아니라
     // 금지 목록에 없으므로, 테스트가 픽스처 엔티티를 만드는 것은 그대로 가능하다.
     files: ['src/**/*.ts', 'test/**/*.ts'],
-    ignores: ['src/common/persistence/**', 'src/config/**', 'src/database/**'],
+    ignores: ['src/common/persistence/**', 'src/config/**', 'src/database/**', 'src/infra/rdb/**'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',

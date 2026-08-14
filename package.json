@@ -23,6 +23,7 @@
     "generate:observability": "ts-node --transpile-only scripts/generate-observability.ts",
     "check:observability": "ts-node --transpile-only scripts/generate-observability.ts --check",
     "check:scaffold": "ts-node --transpile-only scripts/check-scaffold.ts",
+    "scaffold:select": "ts-node --transpile-only scripts/select-scaffold.ts",
     "typecheck": "tsc --noEmit",
     "test": "jest --runInBand",
     "test:cov": "jest --coverage --runInBand",

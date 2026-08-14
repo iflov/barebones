@@ -20,6 +20,6 @@
     "moduleResolution": "nodenext",
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*", "test/**/*", "scripts/**/*"],
+  "include": ["src/**/*", "test/**/*", "scripts/**/*", "drizzle.config.ts", "prisma.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

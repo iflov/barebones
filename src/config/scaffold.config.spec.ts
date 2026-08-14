@@ -97,7 +97,7 @@ describe('scaffold config', () => {
       devDependencies: current.devDependencies,
       envExampleSource: current.envExampleSource,
       files: current.files,
-      rdbModuleSource: `${current.rdbModuleSource}\nPrismaDatabaseModule`,
+      rdbModuleSource: `${current.rdbModuleSource}\nPrismaClient`,
     };
 
     expect(scaffoldConsistencyIssues(config, state)).toContain(

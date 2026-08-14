@@ -2,6 +2,11 @@ import type { ConfigService } from '@nestjs/config';
 import type { MongooseModuleOptions } from '@nestjs/mongoose';
 
 export function buildMongoUri(configService: ConfigService): string {
+  const configuredUri = configService.get<string>('MONGODB_URI');
+  if (configuredUri !== undefined && configuredUri !== '') {
+    return configuredUri;
+  }
+
   const host = configService.get<string>('MONGODB_HOST') ?? 'localhost';
   const port = configService.get<number>('MONGODB_PORT') ?? 27017;
   const username = encodeURIComponent(configService.get<string>('MONGODB_USERNAME') ?? 'app');

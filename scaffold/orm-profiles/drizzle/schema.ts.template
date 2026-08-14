@@ -1,0 +1,2 @@
+// Export product tables from this file in a derived project.
+export {};

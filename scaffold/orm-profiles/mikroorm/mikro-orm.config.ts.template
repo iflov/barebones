@@ -1,0 +1,14 @@
+import { Migrator } from '@mikro-orm/migrations';
+import { defineConfig } from '__MIKRO_DRIVER_PACKAGE__';
+
+export default defineConfig({
+  dbName: process.env.DB_DATABASE ?? 'app',
+  entities: ['dist/**/*.entity.js'],
+  entitiesTs: ['src/**/*.entity.ts'],
+  extensions: [Migrator],
+  host: process.env.DB_HOST ?? 'localhost',
+  migrations: { path: 'dist/database/migrations', pathTs: 'src/database/migrations' },
+  password: process.env.DB_PASSWORD ?? 'app',
+  port: Number(process.env.DB_PORT ?? '__DB_PORT__'),
+  user: process.env.DB_USERNAME ?? 'app',
+});

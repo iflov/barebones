@@ -7,6 +7,12 @@ function config(values: Record<string, unknown>): ConfigService {
 }
 
 describe('mongodb config', () => {
+  it('uses a managed MongoDB URI when one is supplied', () => {
+    expect(buildMongoUri(config({ MONGODB_URI: 'mongodb+srv://cluster.example/app' }))).toBe(
+      'mongodb+srv://cluster.example/app',
+    );
+  });
+
   it('builds a local default uri', () => {
     expect(buildMongoUri(config({}))).toBe(
       'mongodb://app:app@localhost:27017/app?authSource=admin',

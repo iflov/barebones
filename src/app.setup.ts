@@ -113,8 +113,6 @@ function configureSwagger(app: INestApplication, configService: ConfigService): 
   );
 
   SwaggerModule.setup(configService.get<string>('APP_SWAGGER_PATH') ?? 'docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
+    swaggerOptions: {},
   });
 }

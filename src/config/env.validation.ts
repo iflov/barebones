@@ -3,6 +3,9 @@ import * as Joi from 'joi';
 import { activeScaffold } from './active-scaffold';
 import { CORS_WILDCARD, hasWildcardOrigin, parseCorsOrigins } from './cors.config';
 
+const activeDbPort = activeScaffold.rdb.database === 'postgres' ? 5432 : 3306;
+const activeDockerDbHost = activeScaffold.rdb.database;
+
 /**
  * production에서 허용되는 `CORS_ORIGINS`.
  *
@@ -87,6 +90,10 @@ export const validationSchema = Joi.object({
   PROMETHEUS_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
   PROMETHEUS_HOST_PORT: Joi.number().port().default(9090),
   MONGODB_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  MONGODB_URI: Joi.string()
+    .uri({ scheme: ['mongodb', 'mongodb+srv'] })
+    .allow('')
+    .default(''),
   MONGODB_HOST: Joi.string().hostname().default('localhost'),
   DOCKER_MONGODB_HOST: Joi.string().hostname().default('mongodb'),
   MONGODB_PORT: Joi.number().port().default(27017),
@@ -98,9 +105,9 @@ export const validationSchema = Joi.object({
   // 생성 시 선택과 다른 드라이버로 런타임 전환하는 것을 막는다.
   DB_TYPE: Joi.string().valid(activeScaffold.rdb.database).default(activeScaffold.rdb.database),
   DB_HOST: Joi.string().hostname().default('localhost'),
-  DOCKER_DB_HOST: Joi.string().hostname().default('postgres'),
-  DB_PORT: Joi.number().port().default(5432),
-  DB_HOST_PORT: Joi.number().port().default(5432),
+  DOCKER_DB_HOST: Joi.string().hostname().default(activeDockerDbHost),
+  DB_PORT: Joi.number().port().default(activeDbPort),
+  DB_HOST_PORT: Joi.number().port().default(activeDbPort),
   DB_USERNAME: Joi.string().default('app'),
   DB_PASSWORD: Joi.string().allow('').default('app'),
   DB_DATABASE: Joi.string().default('app'),

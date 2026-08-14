@@ -1,0 +1,10 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "__PRISMA_PROVIDER__"
+}
+
+// Add product models in the derived project. This scaffold intentionally has no domain model.

@@ -36,7 +36,7 @@ function isTruthy(value: string | boolean | undefined): boolean {
  * curl에는 아무 영향이 없다. 인증·인가를 대신하지 않는다.
  *
  * ⚠ `origin: true`는 요청 origin을 그대로 반사한다. `credentials: true`와 함께 쓰면
- * 사실상 "모든 사이트에서 쿠키·Authorization 동반 요청 허용"이 된다. 개발 편의를 위한
+ * 사실상 "모든 사이트에서 credential 동반 요청 허용"이 된다. 개발 편의를 위한
  * 기본값이며, production에서 이 조합이 불가능하도록 막는 것이 검증 규칙의 목적이다.
  */
 export function buildCorsOptions(configService: ConfigService): CorsOptions {
@@ -44,7 +44,7 @@ export function buildCorsOptions(configService: ConfigService): CorsOptions {
   const origins = parseCorsOrigins(rawOrigins);
 
   return {
-    allowedHeaders: ['Authorization', 'Content-Type', 'X-Request-Id', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'X-Request-Id', 'X-Requested-With'],
     credentials: isTruthy(configService.get<string | boolean>('CORS_CREDENTIALS')),
     exposedHeaders: ['X-Request-Id'],
     maxAge: 86_400,

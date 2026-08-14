@@ -1,0 +1,23 @@
+import { MikroORM } from '@mikro-orm/core';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
+import { Module } from '@nestjs/common';
+
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
+import mikroOrmConfig from './mikro-orm.config';
+
+@Module({
+  imports: [MikroOrmModule.forRoot(mikroOrmConfig)],
+  providers: [
+    {
+      inject: [MikroORM],
+      provide: RDB_HEALTH_PROBE,
+      useFactory: (orm: MikroORM) => ({
+        ping: async (): Promise<void> => {
+          await orm.em.getConnection().execute('SELECT 1');
+        },
+      }),
+    },
+  ],
+  exports: [MikroOrmModule, RDB_HEALTH_PROBE],
+})
+export class RdbDatabaseModule {}
