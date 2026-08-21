@@ -39,7 +39,20 @@ describe('TypeORM RDB generator', () => {
     expect(rendered).toContain(`DB_TYPE: ${database}`);
     expect(rendered).toContain(`DB_PORT: \${DB_PORT:-${port}}`);
     expect(selectedTypeOrmDriver(database)).toBe(driver);
-    expect(renderActiveScaffold(database)).toContain(`database: '${database}'`);
+    expect(
+      renderActiveScaffold({
+        rdb: { database, orm: 'typeorm' },
+      }),
+    ).toContain(`database: '${database}'`);
+  });
+
+  it('renders the selected ORM without a second renderer', () => {
+    const rendered = renderActiveScaffold({
+      rdb: { database: 'mysql', orm: 'prisma' },
+    });
+
+    expect(rendered).toContain("database: 'mysql'");
+    expect(rendered).toContain("orm: 'prisma'");
   });
 
   it('updates the checked-in environment example', () => {

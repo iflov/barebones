@@ -1,4 +1,4 @@
-import type { RdbChoice } from './scaffold.config';
+import type { RdbChoice, ScaffoldConfig } from './scaffold.config';
 
 interface DatabaseMaterialization {
   readonly composeService: string;
@@ -114,14 +114,14 @@ export function materializeTypeOrmEnv(source: string, database: RdbChoice): stri
     .replace(/^DB_HOST_PORT=.*$/m, `DB_HOST_PORT=${selected.port}`);
 }
 
-export function renderActiveScaffold(database: RdbChoice): string {
+export function renderActiveScaffold(selection: ScaffoldConfig): string {
   return `import type { ScaffoldConfig } from './scaffold.config';
 
 /** 생성기가 materialize한 현재 프로젝트 선택. barebones.config.json과 항상 같아야 한다. */
 export const activeScaffold: ScaffoldConfig = {
   rdb: {
-    database: '${database}',
-    orm: 'typeorm',
+    database: '${selection.rdb.database}',
+    orm: '${selection.rdb.orm}',
   },
 };
 `;

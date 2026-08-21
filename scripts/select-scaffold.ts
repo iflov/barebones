@@ -3,7 +3,6 @@ import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from '
 import { dirname } from 'node:path';
 
 import {
-  type OrmChoice,
   parseScaffoldConfig,
   type RdbChoice,
   type ScaffoldConfig,
@@ -278,23 +277,6 @@ function configurePackages(manifest: PackageManifest, selection: ScaffoldConfig)
   manifest.scripts['migration:run'] = 'drizzle-kit migrate';
 }
 
-function renderSelection(selection: ScaffoldConfig): string {
-  return `import type { ScaffoldConfig } from './scaffold.config';
-
-/** 생성기가 materialize한 현재 프로젝트 선택. barebones.config.json과 항상 같아야 한다. */
-export const activeScaffold: ScaffoldConfig = {
-  rdb: {
-    database: '${selection.rdb.database}',
-    orm: '${selection.rdb.orm}',
-  },
-};
-`;
-}
-
-function prepareCommand(orm: OrmChoice): string[] | null {
-  return orm === 'prisma' ? ['yarn', 'prisma', 'generate'] : null;
-}
-
 function main(): void {
   const selection = parseScaffoldConfig({
     rdb: { database: argument('database'), orm: argument('orm') },
@@ -320,10 +302,7 @@ function main(): void {
     readFileSync('test/load-test-env.ts', 'utf8'),
     selection.rdb.database,
   );
-  files['src/config/active-scaffold.ts'] =
-    selection.rdb.orm === 'typeorm'
-      ? renderActiveScaffold(selection.rdb.database)
-      : renderSelection(selection);
+  files['src/config/active-scaffold.ts'] = renderActiveScaffold(selection);
 
   process.stdout.write(
     `Selection plan: ${selection.rdb.orm} + ${selection.rdb.database}\n${Object.keys(files)
@@ -350,9 +329,8 @@ function main(): void {
   const install = spawnSync('yarn', ['install', '--ignore-scripts'], { stdio: 'inherit' });
   if (install.status !== 0) throw new Error('yarn install failed');
 
-  const prepare = prepareCommand(selection.rdb.orm);
-  if (prepare !== null) {
-    const result = spawnSync(prepare[0], prepare.slice(1), { stdio: 'inherit' });
+  if (selection.rdb.orm === 'prisma') {
+    const result = spawnSync('yarn', ['prisma', 'generate'], { stdio: 'inherit' });
     if (result.status !== 0) throw new Error(`${selection.rdb.orm} client generation failed`);
   }
 
