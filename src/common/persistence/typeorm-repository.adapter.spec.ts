@@ -1,4 +1,5 @@
 import { FindOperator, type ObjectLiteral, type Repository } from 'typeorm';
+import type { Mock } from 'vitest';
 
 import { RepositoryContractError, UniqueConstraintError } from './repository.port';
 import { TypeOrmRepositoryAdapter } from './typeorm-repository.adapter';
@@ -12,15 +13,15 @@ interface TestRow extends ObjectLiteral {
 }
 
 interface MockRepository {
-  count: jest.Mock;
-  create: jest.Mock;
-  delete: jest.Mock;
-  find: jest.Mock;
-  findOne: jest.Mock;
-  insert: jest.Mock;
-  merge: jest.Mock;
-  save: jest.Mock;
-  update: jest.Mock;
+  count: Mock;
+  create: Mock;
+  delete: Mock;
+  find: Mock;
+  findOne: Mock;
+  insert: Mock;
+  merge: Mock;
+  save: Mock;
+  update: Mock;
 }
 
 let repository: MockRepository;
@@ -37,7 +38,7 @@ function operatorTypeOf(where: Record<string, unknown>, key: string): string {
   return value.type;
 }
 
-function whereOf(mock: jest.Mock): Record<string, unknown> {
+function whereOf(mock: Mock): Record<string, unknown> {
   const [options] = mock.mock.calls[0] as [{ where: Record<string, unknown> }];
 
   return options.where;
@@ -45,15 +46,15 @@ function whereOf(mock: jest.Mock): Record<string, unknown> {
 
 beforeEach(() => {
   repository = {
-    count: jest.fn().mockResolvedValue(3),
-    create: jest.fn((data: unknown) => data),
-    delete: jest.fn().mockResolvedValue({ affected: 2 }),
-    find: jest.fn().mockResolvedValue([]),
-    findOne: jest.fn().mockResolvedValue(null),
-    insert: jest.fn().mockResolvedValue({ generatedMaps: [] }),
-    merge: jest.fn((target: object, source: object) => Object.assign(target, source)),
-    save: jest.fn((entity: unknown) => Promise.resolve(entity)),
-    update: jest.fn().mockResolvedValue({ affected: 1 }),
+    count: vi.fn().mockResolvedValue(3),
+    create: vi.fn((data: unknown) => data),
+    delete: vi.fn().mockResolvedValue({ affected: 2 }),
+    find: vi.fn().mockResolvedValue([]),
+    findOne: vi.fn().mockResolvedValue(null),
+    insert: vi.fn().mockResolvedValue({ generatedMaps: [] }),
+    merge: vi.fn((target: object, source: object) => Object.assign(target, source)),
+    save: vi.fn((entity: unknown) => Promise.resolve(entity)),
+    update: vi.fn().mockResolvedValue({ affected: 1 }),
   };
 
   adapter = new TypeOrmRepositoryAdapter<TestRow>(repository as unknown as Repository<TestRow>);

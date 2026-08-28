@@ -12,7 +12,7 @@ function createMocks() {
 
   const queue = {
     name: 'background-jobs',
-    getJobCounts: jest.fn().mockResolvedValue({ waiting: 0, active: 0 }),
+    getJobCounts: vi.fn().mockResolvedValue({ waiting: 0, active: 0 }),
   };
 
   const service = new (class extends BullmqMetricsService {
@@ -44,7 +44,7 @@ describe('BullmqMetricsService', () => {
       };
       const queue = {
         name: 'bg',
-        getJobCounts: jest.fn().mockResolvedValue({ waiting: 0, active: 0 }),
+        getJobCounts: vi.fn().mockResolvedValue({ waiting: 0, active: 0 }),
       };
 
       // 두 번 생성해도 에러 없음 (중복 등록 방지)

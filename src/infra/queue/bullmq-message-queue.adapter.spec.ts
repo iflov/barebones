@@ -2,7 +2,7 @@ import { BullmqMessageQueueAdapter } from './bullmq-message-queue.adapter';
 
 describe('BullmqMessageQueueAdapter', () => {
   it('translates the broker-neutral message into BullMQ options', async () => {
-    const queue = { add: jest.fn().mockResolvedValue(undefined) };
+    const queue = { add: vi.fn().mockResolvedValue(undefined) };
     const adapter = new BullmqMessageQueueAdapter(queue as never);
 
     await adapter.publish({
@@ -25,7 +25,7 @@ describe('BullmqMessageQueueAdapter', () => {
   });
 
   it('uses the portable retry default', async () => {
-    const queue = { add: jest.fn().mockResolvedValue(undefined) };
+    const queue = { add: vi.fn().mockResolvedValue(undefined) };
     const adapter = new BullmqMessageQueueAdapter(queue as never);
 
     await adapter.publish({ name: 'rebuild', payload: {} });

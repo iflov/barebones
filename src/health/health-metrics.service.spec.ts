@@ -12,10 +12,10 @@ function createMocks(inspectResult: Record<string, number> = { database: 1, redi
   };
 
   const healthCoordinator = {
-    inspectIndicators: jest.fn().mockResolvedValue(inspectResult),
+    inspectIndicators: vi.fn().mockResolvedValue(inspectResult),
   };
   const moduleRef = {
-    get: jest.fn().mockReturnValue(metricsService),
+    get: vi.fn().mockReturnValue(metricsService),
   };
 
   const service = new HealthMetricsService(
@@ -42,10 +42,10 @@ describe('HealthMetricsService', () => {
         getPrefix: () => 'test_',
       };
       const healthCoordinator = {
-        inspectIndicators: jest.fn().mockResolvedValue({}),
+        inspectIndicators: vi.fn().mockResolvedValue({}),
       };
       const moduleRef = {
-        get: jest.fn().mockReturnValue(metricsService),
+        get: vi.fn().mockReturnValue(metricsService),
       };
 
       const first = new HealthMetricsService(

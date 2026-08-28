@@ -10,7 +10,7 @@ describe('AllExceptionsFilter', () => {
 
   beforeEach(() => {
     logger = {
-      error: jest.fn(),
+      error: vi.fn(),
     };
     filter = new AllExceptionsFilter(logger as Logger);
   });
@@ -18,8 +18,8 @@ describe('AllExceptionsFilter', () => {
   function createHost(headersSent = false) {
     const response = {
       headersSent,
-      json: jest.fn(),
-      status: jest.fn().mockReturnThis(),
+      json: vi.fn(),
+      status: vi.fn().mockReturnThis(),
     };
 
     const host = {

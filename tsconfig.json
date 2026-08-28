@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "NodeNext",
-    // NodeNext(하이브리드 module kind)에서 ts-jest가 요구한다. 없으면 TS151002 경고.
+    // NestJS 12 packages are ESM while this application remains CommonJS.
     "isolatedModules": true,
     "declaration": true,
     "removeComments": true,
@@ -19,8 +19,16 @@
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "moduleResolution": "nodenext",
-    "types": ["node", "jest"]
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*", "test/**/*", "scripts/**/*", "drizzle.config.ts", "prisma.config.ts"],
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "drizzle.config.ts",
+    "prisma.config.ts",
+    "vitest.config.mts",
+    "vitest.config.e2e.mts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

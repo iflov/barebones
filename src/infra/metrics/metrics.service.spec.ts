@@ -4,9 +4,9 @@ import { collectDefaultMetrics } from 'prom-client';
 
 import { MetricsService } from './metrics.service';
 
-jest.mock('prom-client', (): typeof PromClient => {
-  const actual = jest.requireActual<typeof PromClient>('prom-client');
-  const collectDefaultMetricsMock = jest.fn() as unknown as typeof actual.collectDefaultMetrics;
+vi.mock('prom-client', async (): Promise<typeof PromClient> => {
+  const actual = await vi.importActual<typeof PromClient>('prom-client');
+  const collectDefaultMetricsMock = vi.fn() as unknown as typeof actual.collectDefaultMetrics;
 
   collectDefaultMetricsMock.metricsList = [];
 
@@ -25,7 +25,7 @@ function createConfigService(values: Record<string, unknown>): ConfigService {
 
 describe('MetricsService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('uses the configured metrics prefix', () => {

@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
+import type { Mock } from 'vitest';
 
 import { configureTrustProxy } from './app.setup';
 
@@ -9,8 +10,8 @@ function createConfigService(values: Record<string, unknown>): ConfigService {
   } as ConfigService;
 }
 
-function createApp(): { app: INestApplication; set: jest.Mock } {
-  const set = jest.fn();
+function createApp(): { app: INestApplication; set: Mock } {
+  const set = vi.fn();
 
   return {
     app: {

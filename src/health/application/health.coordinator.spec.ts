@@ -3,7 +3,7 @@ import type { HealthIndicatorPort } from './ports/health-indicator.port';
 
 function indicator(key: string, result: { status: 'down' | 'up' } | Error): HealthIndicatorPort {
   return {
-    check: jest
+    check: vi
       .fn()
       .mockImplementation(() =>
         result instanceof Error ? Promise.reject(result) : Promise.resolve(result),

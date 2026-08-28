@@ -26,9 +26,9 @@
     "check:scaffold": "ts-node --transpile-only scripts/check-scaffold.ts",
     "scaffold:select": "ts-node --transpile-only scripts/select-scaffold.ts",
     "typecheck": "tsc --noEmit",
-    "test": "jest --runInBand",
-    "test:cov": "jest --coverage --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand"
+    "test": "vitest run --config ./vitest.config.mts",
+    "test:cov": "vitest run --coverage --config ./vitest.config.mts",
+    "test:e2e": "vitest run --config ./vitest.config.e2e.mts"
   },
   "lint-staged": {
     "*.{ts,js,mjs}": [
@@ -38,25 +38,6 @@
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "**/*.(t|j)s",
-      "!main.ts",
-      "!**/*.module.ts"
-    ],
-    "coverageDirectory": "../coverage",
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testEnvironment": "node",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    }
   },
   "dependencies": {
     "@keyv/redis": "^5.1.6",
@@ -107,21 +88,20 @@
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
     "@types/express": "^5.0.1",
-    "@types/jest": "^30.0.0",
     "@types/node": "^24.5.2",
     "@types/supertest": "^6.0.3",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "globals": "^16.0.0",
     "ioredis-mock": "^8.13.1",
-    "jest": "^30.0.5",
     "prettier": "^3.6.2",
     "supertest": "^7.1.1",
-    "ts-jest": "^29.4.1",
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.0",
-    "typescript-eslint": "^8.27.0"
+    "typescript-eslint": "^8.27.0",
+    "vitest": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.11"
   }
 }

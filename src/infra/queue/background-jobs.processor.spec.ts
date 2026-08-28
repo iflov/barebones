@@ -2,12 +2,12 @@ import { BackgroundJobsProcessor } from './background-jobs.processor';
 
 function createMocks() {
   const logger = {
-    debug: jest.fn(),
+    debug: vi.fn(),
   };
 
   const bullmqMetricsService = {
-    recordProcessed: jest.fn(),
-    recordFailed: jest.fn(),
+    recordProcessed: vi.fn(),
+    recordFailed: vi.fn(),
   };
 
   const processor = new (class extends BackgroundJobsProcessor {
@@ -76,11 +76,11 @@ describe('BackgroundJobsProcessor', () => {
 
     it('records failed metric and rethrows on error', async () => {
       const logger = {
-        debug: jest.fn().mockImplementation(() => {
+        debug: vi.fn().mockImplementation(() => {
           throw new Error('boom');
         }),
       };
-      const bullmqMetricsService = { recordProcessed: jest.fn(), recordFailed: jest.fn() };
+      const bullmqMetricsService = { recordProcessed: vi.fn(), recordFailed: vi.fn() };
 
       const processor = new (class extends BackgroundJobsProcessor {
         constructor() {
