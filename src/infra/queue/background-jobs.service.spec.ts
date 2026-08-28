@@ -8,7 +8,7 @@ describe('BackgroundJobsService', () => {
 
     const service = new (class extends BackgroundJobsService {
       constructor() {
-        super(mockQueue as never);
+        super(mockQueue);
       }
     })();
 
@@ -41,7 +41,7 @@ describe('BackgroundJobsService', () => {
 
       const service = new (class extends BackgroundJobsService {
         constructor() {
-          super(mockQueue as never);
+          super(mockQueue);
         }
       })();
 
