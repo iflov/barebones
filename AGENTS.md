@@ -64,13 +64,13 @@ adapters/in
 변경 범위에 맞는 검증을 수행하고 통과 근거 없이 완료를 선언하지 않는다.
 
 ```bash
-yarn check:scaffold
-yarn check:observability
-yarn lint
-yarn typecheck
-yarn test
-DB_PORT=15432 yarn test:e2e
-yarn build
+pnpm check:scaffold
+pnpm check:observability
+pnpm lint
+pnpm typecheck
+pnpm test
+DB_PORT=15432 pnpm test:e2e
+pnpm build
 docker compose config --quiet
 ```
 

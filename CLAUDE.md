@@ -9,13 +9,13 @@
 cp .env.example .env
 docker compose up -d --build
 
-yarn check:scaffold
-yarn check:observability
-yarn lint
-yarn typecheck
-yarn test
-DB_PORT=15432 yarn test:e2e
-yarn build
+pnpm check:scaffold
+pnpm check:observability
+pnpm lint
+pnpm typecheck
+pnpm test
+DB_PORT=15432 pnpm test:e2e
+pnpm build
 ```
 
 ## 경계
@@ -41,7 +41,7 @@ adapter/in → application command/query → application port → adapter/out
 AppModule → RdbDatabaseModule → selected ORM adapter → selected RDB
 ```
 
-`yarn build`는 먼저 `check:scaffold`를 실행한다. 선택과 패키지, 드라이버, 활성 모듈, Compose가
+`pnpm build`는 먼저 `check:scaffold`를 실행한다. 선택과 패키지, 드라이버, 활성 모듈, Compose가
 다르면 TypeScript 컴파일 전에 실패한다.
 
 ## CQRS-lite

@@ -29,7 +29,7 @@ Characteristics:
 ```typescript
 // BAD: Tests implementation details
 test('checkout calls paymentService.process', async () => {
-  const mockPayment = jest.mock(paymentService);
+  const mockPayment = vi.mocked(paymentService);
   await checkout(cart, payment);
   expect(mockPayment.process).toHaveBeenCalledWith(cart.total);
 });
