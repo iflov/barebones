@@ -40,13 +40,17 @@ const {
       isGlobal: true,
       validationSchema,
       validationOptions: {
-        abortEarly: false,
-        allowUnknown: true,
+        libraryOptions: {
+          abortEarly: false,
+          allowUnknown: true,
+        },
       },
     }),
     CqrsModule.forRoot(),
     LoggerModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
+      providers: [],
       useFactory: (configService: ConfigService) => buildPinoConfig(configService),
     }),
     CacheModule.registerAsync({
@@ -55,6 +59,7 @@ const {
       useFactory: (configService: ConfigService) => buildCacheOptions(configService),
     }),
     ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         throttlers: [

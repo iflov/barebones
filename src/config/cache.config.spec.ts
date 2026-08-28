@@ -9,9 +9,9 @@ function createConfigService(values: Record<string, unknown>): ConfigService {
 }
 
 describe('buildCacheOptions', () => {
-  it('builds an in-memory cache by default', () => {
+  it('builds an in-memory cache by default', async () => {
     const config = createConfigService({});
-    const options = buildCacheOptions(config);
+    const options = await buildCacheOptions(config);
 
     const memoryStore = options.stores[0]?.opts.store as unknown as {
       _lruSize: number;
@@ -26,7 +26,7 @@ describe('buildCacheOptions', () => {
     expect(memoryStore._ttl).toBe(60_000);
   });
 
-  it('adds a Redis-backed cache store when Redis is enabled', () => {
+  it('adds a Redis-backed cache store when Redis is enabled', async () => {
     const config = createConfigService({
       CACHE_TTL: 15_000,
       REDIS_DB: 2,
@@ -37,7 +37,7 @@ describe('buildCacheOptions', () => {
       REDIS_PORT: 6380,
     });
 
-    const options = buildCacheOptions(config);
+    const options = await buildCacheOptions(config);
     const redisStore = options.stores[1] as unknown as {
       _namespace: string;
       _store: {
