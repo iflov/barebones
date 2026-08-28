@@ -1,5 +1,9 @@
 # Good and Bad Tests
 
+This repository uses native ESM and Vitest. Relative TypeScript imports in tests include the emitted `.js`
+extension (for example, `import { checkout } from './checkout.js'`). Run TypeScript test utilities with
+`tsx`; do not add CommonJS require hooks.
+
 ## Good Tests
 
 **Integration-style**: Test through real interfaces, not mocks of internal parts.

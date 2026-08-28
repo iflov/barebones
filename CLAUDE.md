@@ -42,7 +42,15 @@ AppModule → RdbDatabaseModule → selected ORM adapter → selected RDB
 ```
 
 `pnpm build`는 먼저 `check:scaffold`를 실행한다. 선택과 패키지, 드라이버, 활성 모듈, Compose가
-다르면 TypeScript 컴파일 전에 실패한다.
+다르면 TypeScript 컴파일 전에 실패하고, 컴파일 뒤 source와 `dist` migration 목록도 비교한다.
+
+## ESM과 migration
+
+- package와 출력은 native ESM이다. TypeScript 상대 import에는 `.js` 확장자를 쓴다.
+- 운영 스크립트는 `tsx`, TypeORM CLI는 `typeorm-ts-node-esm`을 사용한다.
+- migration 경로는 `import.meta.url` 기준으로 source와 build 위치를 스스로 찾는다.
+- TypeORM 생성 migration은 실행 전에 lint fix를 거친다. pre-commit도 type-only import를 고치지만
+  생성 직후 앱/CLI 실행까지 대신 보호하지는 않는다.
 
 ## CQRS-lite
 

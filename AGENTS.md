@@ -36,6 +36,16 @@ adapters/in
 - 배포 환경변수만으로 ORM이나 RDB 종류를 바꾸지 않는다.
 - RDB와 MongoDB를 함께 쓸 수 있지만 한 aggregate의 authoritative store는 하나다.
 - 두 저장소 동시 쓰기가 필요하면 dual-write 대신 outbox/event 기반 동기화를 먼저 검토한다.
+- TypeORM entity는 소유 feature module의 `forFeature()`로 등록하고 CLI는 `*.entity.ts`를 찾는다.
+- migration glob은 `import.meta.url` 기준이어야 한다. CWD 기준 `src/...` 경로를 다시 넣지 않는다.
+- migration 생성 직후에는 실행 전에 lint fix로 type-only import를 고친다. `pnpm build`는 source와
+  `dist` migration 목록의 일치를 검사한다.
+
+## ESM
+
+- package와 build output은 native ESM이다. TypeScript 상대 import에는 `.js` 확장자를 쓴다.
+- 저장소 TypeScript 스크립트는 `tsx`, TypeORM CLI는 `typeorm-ts-node-esm`으로 실행한다.
+- CommonJS resolver hook이나 `NODE_OPTIONS --require` 우회를 다시 추가하지 않는다.
 
 ## Redis and messaging
 

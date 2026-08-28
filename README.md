@@ -18,6 +18,24 @@
 
 인증·인가·사용자·관리자 모듈은 의도적으로 없습니다.
 
+## ESM과 TypeORM migration
+
+애플리케이션과 빌드 산출물은 native ESM입니다. TypeScript의 상대 import에는 출력 파일 기준
+`.js` 확장자를 씁니다. 저장소의 TypeScript 운영 스크립트는 `tsx`, TypeORM CLI는
+`typeorm-ts-node-esm`으로 실행합니다.
+
+```bash
+pnpm migration:generate
+pnpm exec eslint --fix src/database/migrations
+pnpm migration:run
+pnpm migration:revert
+```
+
+TypeORM 생성 직후의 migration은 type-only 심볼을 일반 import로 출력할 수 있으므로 앱이나 CLI를
+다시 실행하기 전에 lint fix를 적용합니다. pre-commit도 같은 수정을 하지만 생성 직후 실행 경로는
+보호하지 못합니다. migration glob은 설정 모듈 위치를 기준으로 `src`와 `dist`를 스스로 찾고,
+`pnpm build`는 source migration과 build artifact가 일치하지 않으면 실패합니다.
+
 ## 시작하기
 
 ```bash
@@ -33,8 +51,8 @@ docker compose logs -f app
 ## 스캐폴드 선택
 
 현재 materialized 선택은 [barebones.config.json](./barebones.config.json)에 기록됩니다.
-선택값과 패키지, DB 드라이버, 활성 RDB 모듈, `.env.example`, Docker Compose가 다르면 빌드가
-즉시 실패합니다.
+선택값과 패키지, DB 드라이버, 활성 RDB 모듈, `.env.example`, Docker Compose 또는 TypeORM
+migration 산출물이 다르면 빌드가 즉시 실패합니다.
 
 ```bash
 pnpm check:scaffold
