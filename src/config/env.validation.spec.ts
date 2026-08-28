@@ -1,6 +1,29 @@
+import { ConfigModule } from '@nestjs/config';
+
 import { validationSchema } from './env.validation';
 
 describe('validationSchema', () => {
+  it('allows unrelated process variables through the ConfigModule Standard Schema path', async () => {
+    process.env.BAREBONES_TEST_UNKNOWN = 'kept';
+
+    try {
+      await expect(
+        ConfigModule.forRoot({
+          ignoreEnvFile: true,
+          validationSchema,
+          validationOptions: {
+            libraryOptions: {
+              abortEarly: false,
+              allowUnknown: true,
+            },
+          },
+        }),
+      ).resolves.toMatchObject({ module: ConfigModule });
+    } finally {
+      delete process.env.BAREBONES_TEST_UNKNOWN;
+    }
+  });
+
   describe('defaults', () => {
     it('fills all defaults', () => {
       const { value, error } = validationSchema.validate({});
