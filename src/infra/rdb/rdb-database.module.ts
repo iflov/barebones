@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
-import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
-import { buildTypeOrmOptions } from '../../config/database.config';
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port.js';
+import { buildTypeOrmOptions } from '../../config/database.config.js';
 
 /**
  * 선택된 RDB/ORM 조합의 단일 composition root.

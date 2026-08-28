@@ -4,6 +4,8 @@ packages:
 allowBuilds:
   '@nestjs/core': true
   '@scarf/scarf': true
+  # tsx executes TypeScript scripts through esbuild; keep its install script explicitly scoped.
+  esbuild: true
   msgpackr-extract: true
   unrs-resolver: true
 

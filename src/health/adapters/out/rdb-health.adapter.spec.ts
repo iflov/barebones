@@ -1,4 +1,4 @@
-import { RdbHealthAdapter } from './rdb-health.adapter';
+import { RdbHealthAdapter } from './rdb-health.adapter.js';
 
 describe('RdbHealthAdapter', () => {
   it('reports up after the selected ORM probe succeeds', async () => {

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 
-import { RedisService } from '../../../infra/redis/redis.service';
+import { RedisService } from '../../../infra/redis/redis.service.js';
 import type {
   HealthIndicatorPort,
   HealthIndicatorSnapshot,
-} from '../../application/ports/health-indicator.port';
+} from '../../application/ports/health-indicator.port.js';
 
 @Injectable()
 export class RedisHealthAdapter implements HealthIndicatorPort {

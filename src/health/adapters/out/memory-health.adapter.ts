@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import type {
   HealthIndicatorPort,
   HealthIndicatorSnapshot,
-} from '../../application/ports/health-indicator.port';
+} from '../../application/ports/health-indicator.port.js';
 
 export interface MemoryUsageProbe {
   heapUsed(): number;

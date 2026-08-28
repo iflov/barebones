@@ -2,7 +2,7 @@ import type { ConfigService } from '@nestjs/config';
 import type * as PromClient from 'prom-client';
 import { collectDefaultMetrics } from 'prom-client';
 
-import { MetricsService } from './metrics.service';
+import { MetricsService } from './metrics.service.js';
 
 vi.mock('prom-client', async (): Promise<typeof PromClient> => {
   const actual = await vi.importActual<typeof PromClient>('prom-client');

@@ -1,4 +1,4 @@
-import { resolveFeatureFlags } from './feature-flags';
+import { resolveFeatureFlags } from './feature-flags.js';
 
 describe('resolveFeatureFlags', () => {
   it('세 플래그를 문자열에서 읽는다', () => {

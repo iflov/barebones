@@ -7,19 +7,19 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 
-import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
-import { buildCacheOptions } from './config/cache.config';
-import { validationSchema } from './config/env.validation';
-import { featureFlags } from './config/feature-flags';
-import { envFilePaths } from './config/load-env';
-import { buildPinoConfig } from './config/pino.config';
-import { buildBullConnectionOptions } from './config/redis.config';
-import { HealthModule } from './health/health.module';
-import { MetricsModule } from './infra/metrics/metrics.module';
-import { MongoDatabaseModule } from './infra/mongodb/mongodb.module';
-import { QueueModule } from './infra/queue/queue.module';
-import { RdbDatabaseModule } from './infra/rdb/rdb-database.module';
-import { RedisModule } from './infra/redis/redis.module';
+import { LoggingInterceptor } from './common/interceptors/logger.interceptor.js';
+import { buildCacheOptions } from './config/cache.config.js';
+import { validationSchema } from './config/env.validation.js';
+import { featureFlags } from './config/feature-flags.js';
+import { envFilePaths } from './config/load-env.js';
+import { buildPinoConfig } from './config/pino.config.js';
+import { buildBullConnectionOptions } from './config/redis.config.js';
+import { HealthModule } from './health/health.module.js';
+import { MetricsModule } from './infra/metrics/metrics.module.js';
+import { MongoDatabaseModule } from './infra/mongodb/mongodb.module.js';
+import { QueueModule } from './infra/queue/queue.module.js';
+import { RdbDatabaseModule } from './infra/rdb/rdb-database.module.js';
+import { RedisModule } from './infra/redis/redis.module.js';
 
 // ⚠ 이 플래그들은 DI 컨테이너 이전에 결정된다 (constitution A-3 예외 1).
 // `.env` 파일 값을 보려면 main.ts가 './config/load-env'를 먼저 import해야 한다 —

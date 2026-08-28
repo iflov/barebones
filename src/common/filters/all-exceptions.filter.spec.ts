@@ -2,7 +2,7 @@ import type { ArgumentsHost } from '@nestjs/common';
 import { HttpException } from '@nestjs/common';
 import type { Logger } from 'nestjs-pino';
 
-import { AllExceptionsFilter } from './all-exceptions.filter';
+import { AllExceptionsFilter } from './all-exceptions.filter.js';
 
 describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter;

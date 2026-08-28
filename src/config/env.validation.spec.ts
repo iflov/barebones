@@ -1,6 +1,6 @@
 import { ConfigModule } from '@nestjs/config';
 
-import { validationSchema } from './env.validation';
+import { validationSchema } from './env.validation.js';
 
 describe('validationSchema', () => {
   it('allows unrelated process variables through the ConfigModule Standard Schema path', async () => {

@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 
-import { DISK_SPACE_PROBE, DiskHealthAdapter, type DiskSpaceProbe } from './disk-health.adapter';
+import { DISK_SPACE_PROBE, DiskHealthAdapter, type DiskSpaceProbe } from './disk-health.adapter.js';
 
 describe('DiskHealthAdapter', () => {
   it('reports up at exactly 95% used space using user-available blocks', async () => {

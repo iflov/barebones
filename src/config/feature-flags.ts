@@ -1,4 +1,4 @@
-import { isFeatureEnabled } from './redis.config';
+import { isFeatureEnabled } from './redis.config.js';
 
 /**
  * 모듈을 켜고 끄는 플래그.

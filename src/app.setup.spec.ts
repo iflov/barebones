@@ -2,7 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { Mock } from 'vitest';
 
-import { configureTrustProxy } from './app.setup';
+import { configureTrustProxy } from './app.setup.js';
 
 function createConfigService(values: Record<string, unknown>): ConfigService {
   return {

@@ -1,4 +1,4 @@
-import { GetHealthQueryHandler } from './get-health.query-handler';
+import { GetHealthQueryHandler } from './get-health.query-handler.js';
 
 describe('GetHealthQueryHandler', () => {
   it('delegates transport-independent health orchestration to the coordinator', async () => {

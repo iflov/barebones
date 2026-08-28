@@ -5,7 +5,7 @@ import {
   MEMORY_USAGE_PROBE,
   MemoryHealthAdapter,
   type MemoryUsageProbe,
-} from './memory-health.adapter';
+} from './memory-health.adapter.js';
 
 describe('MemoryHealthAdapter', () => {
   it('reports up when heap usage equals the configured threshold', async () => {

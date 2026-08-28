@@ -6,13 +6,13 @@ import {
   parseScaffoldConfig,
   type RdbChoice,
   type ScaffoldConfig,
-} from '../src/config/scaffold.config';
+} from '../src/config/scaffold.config.js';
 import {
   materializeTypeOrmCompose,
   materializeTypeOrmEnv,
   renderActiveScaffold,
   selectedTypeOrmDriver,
-} from '../src/config/typeorm-rdb-generator';
+} from '../src/config/typeorm-rdb-generator.js';
 
 interface PackageManifest {
   dependencies: Record<string, string>;
@@ -237,7 +237,7 @@ function configurePackages(manifest: PackageManifest, selection: ScaffoldConfig)
     manifest.dependencies['@nestjs/typeorm'] = '^11.0.0';
     manifest.dependencies.typeorm = '^0.3.24';
     manifest.dependencies[driver] = driver === 'pg' ? '^8.16.3' : '^3.15.1';
-    manifest.scripts.typeorm = 'typeorm-ts-node-commonjs -d src/config/typeorm-data-source.ts';
+    manifest.scripts.typeorm = 'typeorm-ts-node-esm -d src/config/typeorm-data-source.ts';
     manifest.scripts['migration:generate'] =
       'pnpm typeorm migration:generate src/database/migrations/AutoMigration';
     manifest.scripts['migration:run'] = 'pnpm typeorm migration:run';

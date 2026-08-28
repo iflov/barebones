@@ -22,6 +22,12 @@ export interface ScaffoldState {
   readonly rdbModuleSource: string;
 }
 
+interface TypeOrmMigrationState {
+  readonly builtMigrationFiles?: readonly string[];
+  readonly databaseConfigSource: string;
+  readonly sourceMigrationFiles: readonly string[];
+}
+
 interface OrmProfileContract {
   readonly appModuleMarker: string;
   readonly requiredDependencies: readonly string[];
@@ -102,6 +108,45 @@ export class ScaffoldConfigError extends Error {
     super(message);
     this.name = 'ScaffoldConfigError';
   }
+}
+
+function migrationNames(files: readonly string[], extension: '.js' | '.ts'): string[] {
+  return files
+    .filter((file) => file.endsWith(extension))
+    .map((file) => file.slice(0, -extension.length))
+    .sort();
+}
+
+/** TypeORM migration discovery가 CWD에 묶이거나 빌드 중 조용히 누락되는 것을 막는다. */
+export function typeOrmMigrationConsistencyIssues(
+  config: ScaffoldConfig,
+  state: TypeOrmMigrationState,
+): string[] {
+  if (config.rdb.orm !== 'typeorm') {
+    return [];
+  }
+
+  const issues: string[] = [];
+  if (
+    !state.databaseConfigSource.includes('fileURLToPath(import.meta.url)') ||
+    !state.databaseConfigSource.includes('../database/migrations/*{.ts,.js}')
+  ) {
+    issues.push('TypeORM migrations must use a self-locating import.meta.url glob');
+  }
+
+  if (state.builtMigrationFiles === undefined) {
+    return issues;
+  }
+
+  const sourceNames = migrationNames(state.sourceMigrationFiles, '.ts');
+  const builtNames = migrationNames(state.builtMigrationFiles, '.js');
+  if (sourceNames.join('\0') !== builtNames.join('\0')) {
+    issues.push(
+      `compiled TypeORM migrations do not match source: source=[${sourceNames.join(', ')}] built=[${builtNames.join(', ')}]`,
+    );
+  }
+
+  return issues;
 }
 
 export function parseScaffoldConfig(input: unknown): ScaffoldConfig {

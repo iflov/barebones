@@ -1,8 +1,11 @@
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import type { ConfigService } from '@nestjs/config';
 import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import type { DataSourceOptions } from 'typeorm';
 
-import { activeScaffold } from './active-scaffold';
+import { activeScaffold } from './active-scaffold.js';
 
 /**
  * 지원 드라이버.
@@ -22,7 +25,11 @@ const DEFAULT_PORT_BY_TYPE: Record<SupportedDbType, number> = {
   postgres: 5432,
 };
 
-const MIGRATIONS = ['src/database/migrations/*{.ts,.js}'];
+// CWD가 아니라 이 모듈의 위치를 기준으로 한다. 소스 CLI에서는 src/config → src/database,
+// 빌드된 앱에서는 dist/config → dist/database로 같은 규칙이 스스로 이동한다.
+const MIGRATIONS = [
+  join(dirname(fileURLToPath(import.meta.url)), '../database/migrations/*{.ts,.js}'),
+];
 
 function isTruthy(value: string | boolean | undefined): boolean {
   return value === true || value === 'true';

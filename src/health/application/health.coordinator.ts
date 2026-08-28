@@ -5,7 +5,7 @@ import {
   type HealthIndicatorPort,
   type HealthIndicatorSnapshot,
   type SystemHealth,
-} from './ports/health-indicator.port';
+} from './ports/health-indicator.port.js';
 
 /** HTTP, CLI, Prometheus가 공통으로 사용하는 health 조율자. */
 @Injectable()

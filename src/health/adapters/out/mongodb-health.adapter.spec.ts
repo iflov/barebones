@@ -1,4 +1,4 @@
-import { MongodbHealthAdapter } from './mongodb-health.adapter';
+import { MongodbHealthAdapter } from './mongodb-health.adapter.js';
 
 describe('MongodbHealthAdapter', () => {
   it('pings the selected database when connected', async () => {

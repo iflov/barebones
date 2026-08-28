@@ -1,29 +1,29 @@
 import { Module, type Type } from '@nestjs/common';
 
-import { featureFlags } from '../config/feature-flags';
-import { RdbDatabaseModule } from '../infra/rdb/rdb-database.module';
-import { RedisModule } from '../infra/redis/redis.module';
-import { HealthController } from './adapters/in/http/health.controller';
+import { featureFlags } from '../config/feature-flags.js';
+import { RdbDatabaseModule } from '../infra/rdb/rdb-database.module.js';
+import { RedisModule } from '../infra/redis/redis.module.js';
+import { HealthController } from './adapters/in/http/health.controller.js';
 import {
   DISK_SPACE_PROBE,
   DiskHealthAdapter,
   nodeDiskSpaceProbe,
-} from './adapters/out/disk-health.adapter';
+} from './adapters/out/disk-health.adapter.js';
 import {
   MEMORY_USAGE_PROBE,
   MemoryHealthAdapter,
   processMemoryUsageProbe,
-} from './adapters/out/memory-health.adapter';
-import { MongodbHealthAdapter } from './adapters/out/mongodb-health.adapter';
-import { RdbHealthAdapter } from './adapters/out/rdb-health.adapter';
-import { RedisHealthAdapter } from './adapters/out/redis-health.adapter';
-import { HealthCoordinator } from './application/health.coordinator';
+} from './adapters/out/memory-health.adapter.js';
+import { MongodbHealthAdapter } from './adapters/out/mongodb-health.adapter.js';
+import { RdbHealthAdapter } from './adapters/out/rdb-health.adapter.js';
+import { RedisHealthAdapter } from './adapters/out/redis-health.adapter.js';
+import { HealthCoordinator } from './application/health.coordinator.js';
 import {
   HEALTH_INDICATORS,
   type HealthIndicatorPort,
-} from './application/ports/health-indicator.port';
-import { GetHealthQueryHandler } from './application/queries/get-health.query-handler';
-import { HealthMetricsService } from './health-metrics.service';
+} from './application/ports/health-indicator.port.js';
+import { GetHealthQueryHandler } from './application/queries/get-health.query-handler.js';
+import { HealthMetricsService } from './health-metrics.service.js';
 
 const healthAdapterTypes: Type<HealthIndicatorPort>[] = [
   RdbHealthAdapter,

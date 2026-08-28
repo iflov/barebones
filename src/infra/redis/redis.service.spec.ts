@@ -1,7 +1,7 @@
 import type { ConfigService } from '@nestjs/config';
 import type { Mock } from 'vitest';
 
-import { RedisService } from './redis.service';
+import { RedisService } from './redis.service.js';
 
 interface MockRedisClient {
   connect: Mock<() => Promise<void>>;
@@ -22,7 +22,7 @@ let redisClient: MockRedisClient;
 
 vi.mock('ioredis', () => {
   return {
-    default: vi.fn(function RedisMock(): MockRedisClient {
+    Redis: vi.fn(function RedisMock(): MockRedisClient {
       return redisClient;
     }),
   };

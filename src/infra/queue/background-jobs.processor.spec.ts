@@ -1,4 +1,4 @@
-import { BackgroundJobsProcessor } from './background-jobs.processor';
+import { BackgroundJobsProcessor } from './background-jobs.processor.js';
 
 function createMocks() {
   const logger = {

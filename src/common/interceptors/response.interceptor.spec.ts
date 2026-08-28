@@ -1,7 +1,7 @@
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { lastValueFrom, of } from 'rxjs';
 
-import { ResponseInterceptor } from './response.interceptor';
+import { ResponseInterceptor } from './response.interceptor.js';
 
 describe('ResponseInterceptor', () => {
   it('wraps successful responses in the standard envelope', async () => {

@@ -2,7 +2,7 @@ import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
 import type { Mock } from 'vitest';
 
-import { LoggingInterceptor } from './logger.interceptor';
+import { LoggingInterceptor } from './logger.interceptor.js';
 
 describe('LoggingInterceptor', () => {
   let interceptor: LoggingInterceptor;

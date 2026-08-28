@@ -1,7 +1,7 @@
 import type { ModuleRef } from '@nestjs/core';
 import { Registry } from 'prom-client';
 
-import { HealthMetricsService } from './health-metrics.service';
+import { HealthMetricsService } from './health-metrics.service.js';
 
 function createMocks(inspectResult: Record<string, number> = { database: 1, redis: 0 }) {
   const registry = new Registry();

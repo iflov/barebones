@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import type { Job } from 'bullmq';
 import { Logger } from 'nestjs-pino';
 
-import { BACKGROUND_JOBS_QUEUE } from './background-jobs.constants';
-import { BullmqMetricsService } from './bullmq-metrics.service';
+import { BACKGROUND_JOBS_QUEUE } from './background-jobs.constants.js';
+import { BullmqMetricsService } from './bullmq-metrics.service.js';
 
 @Injectable()
 @Processor(BACKGROUND_JOBS_QUEUE)

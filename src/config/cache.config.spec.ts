@@ -1,6 +1,6 @@
 import type { ConfigService } from '@nestjs/config';
 
-import { buildCacheOptions } from './cache.config';
+import { buildCacheOptions } from './cache.config.js';
 
 function createConfigService(values: Record<string, unknown>): ConfigService {
   return {

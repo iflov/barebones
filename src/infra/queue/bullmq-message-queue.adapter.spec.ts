@@ -1,4 +1,4 @@
-import { BullmqMessageQueueAdapter } from './bullmq-message-queue.adapter';
+import { BullmqMessageQueueAdapter } from './bullmq-message-queue.adapter.js';
 
 describe('BullmqMessageQueueAdapter', () => {
   it('translates the broker-neutral message into BullMQ options', async () => {

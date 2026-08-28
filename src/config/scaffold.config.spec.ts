@@ -2,7 +2,8 @@ import {
   parseScaffoldConfig,
   scaffoldConsistencyIssues,
   type ScaffoldState,
-} from './scaffold.config';
+  typeOrmMigrationConsistencyIssues,
+} from './scaffold.config.js';
 
 function typeOrmPostgresState(): ScaffoldState {
   return {
@@ -115,6 +116,45 @@ describe('scaffold config', () => {
         '.env.example DB_TYPE does not match selected database: mysql',
         'docker-compose.yml does not provide selected database: mysql',
       ]),
+    );
+  });
+});
+
+describe('TypeORM migration consistency', () => {
+  const config = parseScaffoldConfig({ rdb: { database: 'postgres', orm: 'typeorm' } });
+  const selfLocatingConfig = `
+    fileURLToPath(import.meta.url)
+    ../database/migrations/*{.ts,.js}
+  `;
+
+  it('accepts an empty source and build migration directory', () => {
+    expect(
+      typeOrmMigrationConsistencyIssues(config, {
+        builtMigrationFiles: [],
+        databaseConfigSource: selfLocatingConfig,
+        sourceMigrationFiles: ['.gitkeep'],
+      }),
+    ).toEqual([]);
+  });
+
+  it('rejects a CWD-relative migration glob even when there are no migrations', () => {
+    expect(
+      typeOrmMigrationConsistencyIssues(config, {
+        databaseConfigSource: "const MIGRATIONS = ['src/database/migrations/*{.ts,.js}']",
+        sourceMigrationFiles: ['.gitkeep'],
+      }),
+    ).toContain('TypeORM migrations must use a self-locating import.meta.url glob');
+  });
+
+  it('rejects a migration omitted from the build output', () => {
+    expect(
+      typeOrmMigrationConsistencyIssues(config, {
+        builtMigrationFiles: [],
+        databaseConfigSource: selfLocatingConfig,
+        sourceMigrationFiles: ['1787900000000-CreateWidget.ts'],
+      }),
+    ).toContain(
+      'compiled TypeORM migrations do not match source: source=[1787900000000-CreateWidget] built=[]',
     );
   });
 });

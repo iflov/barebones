@@ -1,4 +1,4 @@
-import { BackgroundJobsService } from './background-jobs.service';
+import { BackgroundJobsService } from './background-jobs.service.js';
 
 describe('BackgroundJobsService', () => {
   function createMocks() {

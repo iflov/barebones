@@ -1,9 +1,9 @@
 import { Global, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
-import { MetricsInterceptor } from './http-metrics.interceptor';
-import { MetricsController } from './metrics.controller';
-import { MetricsService } from './metrics.service';
+import { MetricsInterceptor } from './http-metrics.interceptor.js';
+import { MetricsController } from './metrics.controller.js';
+import { MetricsService } from './metrics.service.js';
 
 /**
  * Prometheus 메트릭 모듈

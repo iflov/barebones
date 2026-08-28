@@ -1,5 +1,5 @@
-import { HealthCoordinator } from './health.coordinator';
-import type { HealthIndicatorPort } from './ports/health-indicator.port';
+import { HealthCoordinator } from './health.coordinator.js';
+import type { HealthIndicatorPort } from './ports/health-indicator.port.js';
 
 function indicator(key: string, result: { status: 'down' | 'up' } | Error): HealthIndicatorPort {
   return {

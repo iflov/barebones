@@ -1,10 +1,11 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 
 import {
   parseScaffoldConfig,
   scaffoldConsistencyIssues,
   type ScaffoldState,
-} from '../src/config/scaffold.config';
+  typeOrmMigrationConsistencyIssues,
+} from '../src/config/scaffold.config.js';
 
 interface PackageManifest {
   readonly dependencies?: Record<string, string>;
@@ -17,6 +18,10 @@ function readJson(path: string): unknown {
 
 function dependencyNames(dependencies: Record<string, string> | undefined): Set<string> {
   return new Set(Object.keys(dependencies ?? {}));
+}
+
+function filesIn(path: string): string[] {
+  return existsSync(path) ? readdirSync(path, { encoding: 'utf8' }) : [];
 }
 
 function main(): void {
@@ -43,6 +48,15 @@ function main(): void {
     rdbModuleSource: readFileSync('src/infra/rdb/rdb-database.module.ts', 'utf8'),
   };
   const issues = scaffoldConsistencyIssues(config, state);
+  issues.push(
+    ...typeOrmMigrationConsistencyIssues(config, {
+      builtMigrationFiles: process.argv.includes('--build-output')
+        ? filesIn('dist/database/migrations')
+        : undefined,
+      databaseConfigSource: readFileSync('src/config/database.config.ts', 'utf8'),
+      sourceMigrationFiles: filesIn('src/database/migrations'),
+    }),
+  );
 
   if (issues.length > 0) {
     process.stderr.write('Scaffold selection is inconsistent:\n');

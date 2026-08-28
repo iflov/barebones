@@ -1,6 +1,6 @@
 import { Registry } from 'prom-client';
 
-import { BullmqMetricsService } from './bullmq-metrics.service';
+import { BullmqMetricsService } from './bullmq-metrics.service.js';
 
 function createMocks() {
   const registry = new Registry();

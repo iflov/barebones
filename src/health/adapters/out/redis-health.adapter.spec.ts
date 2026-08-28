@@ -1,4 +1,4 @@
-import { RedisHealthAdapter } from './redis-health.adapter';
+import { RedisHealthAdapter } from './redis-health.adapter.js';
 
 describe('RedisHealthAdapter', () => {
   it('returns up when redis responds with PONG', async () => {

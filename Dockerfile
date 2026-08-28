@@ -33,8 +33,6 @@ COPY --from=prod-deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=prod-deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /app/config ./config
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/scripts/nestjs12-require-hook.cjs ./scripts/nestjs12-require-hook.cjs
-
 USER node
 
 EXPOSE 3000

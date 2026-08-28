@@ -21,7 +21,7 @@ import {
   RepositoryContractError,
   UniqueConstraintError,
   type WhereFilter,
-} from './repository.port';
+} from './repository.port.js';
 
 /**
  * `IRepository<T>`의 TypeORM 구현.

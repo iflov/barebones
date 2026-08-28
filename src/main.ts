@@ -2,16 +2,16 @@ import 'reflect-metadata';
 // ⚠ 이 import는 './app.module'보다 **위에 있어야 한다.** import는 순서대로 평가되고,
 // app.module.ts의 모듈 본문이 그 시점에 process.env를 읽어 feature flag를 결정한다.
 // 순서가 뒤바뀌면 `.env` 파일의 플래그가 무시되고 모듈이 조용히 빠진다 (load-env.ts 참고).
-import './config/load-env';
+import './config/load-env.js';
 
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 
-import { AppModule } from './app.module';
-import { configureHttpApp } from './app.setup';
-import { featureFlags } from './config/feature-flags';
-import { loadedEnvFiles } from './config/load-env';
+import { AppModule } from './app.module.js';
+import { configureHttpApp } from './app.setup.js';
+import { featureFlags } from './config/feature-flags.js';
+import { loadedEnvFiles } from './config/load-env.js';
 
 const SHUTDOWN_SIGNALS: NodeJS.Signals[] = ['SIGINT', 'SIGTERM'];
 

@@ -1,8 +1,8 @@
 import { FindOperator, type ObjectLiteral, type Repository } from 'typeorm';
 import type { Mock } from 'vitest';
 
-import { RepositoryContractError, UniqueConstraintError } from './repository.port';
-import { TypeOrmRepositoryAdapter } from './typeorm-repository.adapter';
+import { RepositoryContractError, UniqueConstraintError } from './repository.port.js';
+import { TypeOrmRepositoryAdapter } from './typeorm-repository.adapter.js';
 
 interface TestRow extends ObjectLiteral {
   id: string;

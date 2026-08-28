@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-import { observabilityConfig } from '../src/config/observability.config';
+import { observabilityConfig } from '../src/config/observability.config.js';
 
 const DASHBOARD_FILES = [
   'ops/grafana/provisioning/dashboards/json/bullmq-jobs.json',

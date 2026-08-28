@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { toIsoString } from './date.util';
+import { toIsoString } from './date.util.js';
 
 describe('toIsoString', () => {
   it('formats dates with dayjs', () => {

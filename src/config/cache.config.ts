@@ -2,7 +2,7 @@ import type { ConfigService } from '@nestjs/config';
 import { CacheableMemory } from 'cacheable';
 import type { Keyv as ImportKeyv } from 'keyv' with { 'resolution-mode': 'import' };
 
-import { buildRedisUrl, isFeatureEnabled } from './redis.config';
+import { buildRedisUrl, isFeatureEnabled } from './redis.config.js';
 
 interface CacheStoreOptions {
   stores: ImportKeyv[];
