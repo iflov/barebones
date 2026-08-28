@@ -2,9 +2,9 @@ import { Controller, Get, Header, Version } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 
-import { RawResponse } from '../../common/decorators/raw-response.decorator';
-import { METRICS_ROUTE_PATH } from '../../config/observability.config';
-import { MetricsService } from './metrics.service';
+import { RawResponse } from '../../common/decorators/raw-response.decorator.js';
+import { METRICS_ROUTE_PATH } from '../../config/observability.config.js';
+import { MetricsService } from './metrics.service.js';
 
 @ApiExcludeController()
 @Controller(METRICS_ROUTE_PATH)

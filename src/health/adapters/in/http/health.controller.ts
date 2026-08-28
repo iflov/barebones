@@ -3,9 +3,9 @@ import { QueryBus } from '@nestjs/cqrs';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 
-import { HEALTH_ROUTE_PATH } from '../../../../config/observability.config';
-import type { SystemHealth } from '../../../application/ports/health-indicator.port';
-import { GetHealthQuery } from '../../../application/queries/get-health.query';
+import { HEALTH_ROUTE_PATH } from '../../../../config/observability.config.js';
+import type { SystemHealth } from '../../../application/ports/health-indicator.port.js';
+import { GetHealthQuery } from '../../../application/queries/get-health.query.js';
 
 /** HTTP inbound adapter. 헬스 판단은 application 계층에 위임하고 HTTP 상태만 변환한다. */
 @ApiTags('health')

@@ -1,10 +1,13 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
   parseScaffoldConfig,
   scaffoldConsistencyIssues,
   type ScaffoldState,
-} from '../src/config/scaffold.config';
+  scaffoldTemplateEsmIssues,
+  typeOrmMigrationConsistencyIssues,
+} from '../src/config/scaffold.config.js';
 
 interface PackageManifest {
   readonly dependencies?: Record<string, string>;
@@ -17,6 +20,25 @@ function readJson(path: string): unknown {
 
 function dependencyNames(dependencies: Record<string, string> | undefined): Set<string> {
   return new Set(Object.keys(dependencies ?? {}));
+}
+
+function filesIn(path: string): string[] {
+  return existsSync(path) ? readdirSync(path, { encoding: 'utf8' }) : [];
+}
+
+function templateFilesIn(path: string): string[] {
+  if (!existsSync(path)) return [];
+
+  return readdirSync(path, { withFileTypes: true })
+    .flatMap((entry) => {
+      const entryPath = join(path, entry.name);
+      return entry.isDirectory()
+        ? templateFilesIn(entryPath)
+        : entry.isFile() && entry.name.endsWith('.template')
+          ? [entryPath]
+          : [];
+    })
+    .sort();
 }
 
 function main(): void {
@@ -43,6 +65,22 @@ function main(): void {
     rdbModuleSource: readFileSync('src/infra/rdb/rdb-database.module.ts', 'utf8'),
   };
   const issues = scaffoldConsistencyIssues(config, state);
+  issues.push(
+    ...scaffoldTemplateEsmIssues(
+      templateFilesIn('scaffold').map((path) => ({ path, source: readFileSync(path, 'utf8') })),
+    ),
+  );
+  issues.push(
+    ...typeOrmMigrationConsistencyIssues(config, {
+      builtMigrationFiles:
+        config.rdb.orm === 'typeorm' && process.argv.includes('--build-output')
+          ? filesIn('dist/database/migrations')
+          : undefined,
+      databaseConfigSource:
+        config.rdb.orm === 'typeorm' ? readFileSync('src/config/database.config.ts', 'utf8') : '',
+      sourceMigrationFiles: config.rdb.orm === 'typeorm' ? filesIn('src/database/migrations') : [],
+    }),
+  );
 
   if (issues.length > 0) {
     process.stderr.write('Scaffold selection is inconsistent:\n');

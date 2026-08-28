@@ -8,12 +8,12 @@ import {
   createRepositoryToken,
   type PortOf,
   provideRepositoryPort,
-} from '../src/common/persistence/provide-repository-port';
+} from '../src/common/persistence/provide-repository-port.js';
 import {
   RepositoryContractError,
   UniqueConstraintError,
-} from '../src/common/persistence/repository.port';
-import { validationSchema } from '../src/config/env.validation';
+} from '../src/common/persistence/repository.port.js';
+import { validationSchema } from '../src/config/env.validation.js';
 
 /**
  * 영속화 포트 e2e (constitution A-1-P / D-1).

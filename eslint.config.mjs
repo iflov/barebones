@@ -24,11 +24,11 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
-    files: ['**/*.ts'],
+    files: ['**/*.{ts,mts}'],
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.jest,
+        ...globals.vitest,
       },
       parserOptions: {
         projectService: true,
@@ -136,6 +136,17 @@ export default tseslint.config(
           ],
         },
       ],
+    },
+  },
+  {
+    ...tseslint.configs.disableTypeChecked,
+    files: ['**/*.{cjs,js,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {

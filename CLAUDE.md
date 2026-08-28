@@ -9,13 +9,13 @@
 cp .env.example .env
 docker compose up -d --build
 
-yarn check:scaffold
-yarn check:observability
-yarn lint
-yarn typecheck
-yarn test
-DB_PORT=15432 yarn test:e2e
-yarn build
+pnpm check:scaffold
+pnpm check:observability
+pnpm lint
+pnpm typecheck
+pnpm test
+DB_PORT=15432 pnpm test:e2e
+pnpm build
 ```
 
 ## 경계
@@ -41,8 +41,61 @@ adapter/in → application command/query → application port → adapter/out
 AppModule → RdbDatabaseModule → selected ORM adapter → selected RDB
 ```
 
-`yarn build`는 먼저 `check:scaffold`를 실행한다. 선택과 패키지, 드라이버, 활성 모듈, Compose가
-다르면 TypeScript 컴파일 전에 실패한다.
+`pnpm build`는 먼저 `check:scaffold`를 실행한다. 선택과 패키지, 드라이버, 활성 모듈, Compose가
+다르면 TypeScript 컴파일 전에 실패하고, 컴파일 뒤 source와 `dist` migration 목록도 비교한다.
+
+## ESM과 migration
+
+- package와 출력은 native ESM이다. TypeScript 상대 import에는 `.js` 확장자를 쓴다.
+- 운영 스크립트는 `tsx`, TypeORM CLI는 `typeorm-ts-node-esm`을 사용한다.
+- migration 경로는 `import.meta.url` 기준으로 source와 build 위치를 스스로 찾는다.
+- TypeORM 생성 migration은 실행 전에 lint fix를 거친다. pre-commit도 type-only import를 고치지만
+  생성 직후 앱/CLI 실행까지 대신 보호하지는 않는다.
+
+## 툴체인 버전 정책
+
+TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. 2026-08-28 실측 근거:
+
+- `@nestjs/cli`가 TypeScript의 programmatic compiler API를 요구하는데 7.0은 `tsc` 실행 파일만
+  배포한다(`lib/typescript.js`가 없고 `exports["."]`가 `lib/version.cjs`를 가리킨다).
+  `nest build`가 다음으로 실패한다.
+
+  ```text
+  The installed TypeScript version (7.0.2) does not expose the programmatic compiler API
+  that the Nest CLI requires. TypeScript 7.0 ships the "tsc" executable only;
+  the compiler API is expected to return in 7.1.
+  Please install TypeScript 6 (e.g. "npm i -D typescript@^6") until then.
+  ```
+
+- `typescript-eslint`는 최신 `8.68.0`도 peer가 `<6.1.0`이라 7을 지원하지 않는다.
+- `ts-node`(TypeORM CLI가 경유한다)도 같은 compiler API에 의존한다.
+- 반면 `tsc --noEmit`, Vitest, `tsx` 기반 스크립트는 7.0.2에서 **이미 통과한다.**
+  막히는 것은 `build`와 `lint` 둘뿐이다.
+
+해제 조건은 둘 다 충족돼야 한다.
+
+1. TypeScript **7.1**의 compiler API 복귀 (7.0 에러 메시지가 7.1을 명시한다)
+2. `typescript-eslint`의 7 지원 릴리스
+
+기다릴 가치는 있다. 같은 코드에서 direct executable `tsc --noEmit` warm run이 **6.0.3에서
+1180–1230ms, 7.0.2에서 240–260ms**였다. 7.0은 네이티브(Go) 포트이고 플랫폼별 바이너리를
+optionalDependencies로 싣는다.
+
+### SWC 빌더는 쓰지 않는다
+
+`nest build --builder swc`를 2026-08-28에 평가했고 채택하지 않았다.
+
+- warm direct executable 기준(pre/postbuild 제외) build는 `nest build` **2.00–2.38s**에서
+  `nest build --builder swc` **0.44–0.54s**로 빨라지지만 **타입 검사를 하지 않는다.** 속도의 출처가 검사 생략이다.
+  TypeScript 7은 검사 자체를 빠르게 하므로 포기하는 것이 없다 — 그쪽을 기다리는 편이 낫다.
+- `.swcrc`가 `tsconfig.json`과 별개의 **두 번째 진실 원천**이 된다. 이 저장소는 선언과 실제의
+  drift를 build에서 막는 구조라 동기화가 필요한 축을 늘리지 않는다.
+- decorator metadata가 SWC 재구현이다. 현재 코드는 통과하지만, 파생 프로젝트가 쓸 새 entity의
+  optional·union·type-only import 경계는 검증되지 않았다. TypeORM 컬럼 타입과 DI가 여기 걸리고
+  실패가 조용하다.
+- `.swcrc` 없이는 `"type": "module"`인데도 CJS를 출력해 부팅에 실패한다
+  (`ReferenceError: exports is not defined in ES module scope`).
+- **TypeScript 7 차단을 풀지 못한다.** 빌더와 무관하게 Nest CLI가 compiler API를 먼저 요구한다.
 
 ## CQRS-lite
 

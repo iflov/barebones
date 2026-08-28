@@ -1,5 +1,9 @@
 # Good and Bad Tests
 
+This repository uses native ESM and Vitest. Relative TypeScript imports in tests include the emitted `.js`
+extension (for example, `import { checkout } from './checkout.js'`). Run TypeScript test utilities with
+`tsx`; do not add CommonJS require hooks.
+
 ## Good Tests
 
 **Integration-style**: Test through real interfaces, not mocks of internal parts.
@@ -29,7 +33,7 @@ Characteristics:
 ```typescript
 // BAD: Tests implementation details
 test('checkout calls paymentService.process', async () => {
-  const mockPayment = jest.mock(paymentService);
+  const mockPayment = vi.mocked(paymentService);
   await checkout(cart, payment);
   expect(mockPayment.process).toHaveBeenCalledWith(cart.total);
 });

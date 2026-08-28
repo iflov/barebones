@@ -5,7 +5,7 @@ import type { ConfigService } from '@nestjs/config';
 import dayjs from 'dayjs';
 import type { Params } from 'nestjs-pino';
 
-import { HEALTH_ROUTE_PATH, METRICS_ROUTE_PATH } from './observability.config';
+import { HEALTH_ROUTE_PATH, METRICS_ROUTE_PATH } from './observability.config.js';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 

@@ -1,6 +1,9 @@
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import type { ConfigService } from '@nestjs/config';
 
-import { buildDataSourceOptionsFromEnv, buildTypeOrmOptions } from './database.config';
+import { buildDataSourceOptionsFromEnv, buildTypeOrmOptions } from './database.config.js';
 
 function createConfigService(values: Record<string, unknown>): ConfigService {
   return {
@@ -126,7 +129,9 @@ describe('buildDataSourceOptionsFromEnv', () => {
     const options = buildDataSourceOptionsFromEnv({});
 
     expect(options.entities).toEqual(['src/**/*.entity{.ts,.js}']);
-    expect(options.migrations).toEqual(['src/database/migrations/*{.ts,.js}']);
+    expect(options.migrations).toEqual([
+      join(dirname(fileURLToPath(import.meta.url)), '../database/migrations/*{.ts,.js}'),
+    ]);
   });
 
   it('DB_LOGGING은 문자열 "true"만 참으로 본다', () => {

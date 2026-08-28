@@ -1,6 +1,6 @@
 import type { ConfigService } from '@nestjs/config';
 
-import { buildMongooseOptions, buildMongoUri } from './mongodb.config';
+import { buildMongooseOptions, buildMongoUri } from './mongodb.config.js';
 
 function config(values: Record<string, unknown>): ConfigService {
   return { get: <T>(key: string) => values[key] as T } as ConfigService;

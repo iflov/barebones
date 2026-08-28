@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { envFilePaths, loadEnvFiles } from './load-env';
+import { envFilePaths, loadEnvFiles } from './load-env.js';
 
 describe('envFilePaths', () => {
   it('환경별 파일을 먼저, 공용 .env를 나중에 둔다', () => {

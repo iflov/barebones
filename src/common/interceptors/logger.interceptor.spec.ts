@@ -1,7 +1,8 @@
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
+import type { Mock } from 'vitest';
 
-import { LoggingInterceptor } from './logger.interceptor';
+import { LoggingInterceptor } from './logger.interceptor.js';
 
 describe('LoggingInterceptor', () => {
   let interceptor: LoggingInterceptor;
@@ -15,10 +16,10 @@ describe('LoggingInterceptor', () => {
     request: Record<string, unknown>;
   } {
     const request: Record<string, unknown> = {
-      get: jest.fn().mockReturnValue('jest-agent'),
+      get: vi.fn().mockReturnValue('vitest-agent'),
       ip: '127.0.0.1',
       log: {
-        setBindings: jest.fn(),
+        setBindings: vi.fn(),
       },
       method: 'GET',
       path: '/v1/system/health',
@@ -43,7 +44,7 @@ describe('LoggingInterceptor', () => {
 
     await lastValueFrom(interceptor.intercept(context, next));
 
-    expect((request.log as { setBindings: jest.Mock }).setBindings).toHaveBeenCalledWith({
+    expect((request.log as { setBindings: Mock }).setBindings).toHaveBeenCalledWith({
       handler: 'HealthController.check',
     });
   });
@@ -62,7 +63,7 @@ describe('LoggingInterceptor', () => {
 
     await lastValueFrom(interceptor.intercept(context, next));
 
-    expect((request.log as { setBindings: jest.Mock }).setBindings).toHaveBeenCalledWith({
+    expect((request.log as { setBindings: Mock }).setBindings).toHaveBeenCalledWith({
       handler: 'HealthController.check',
     });
   });
@@ -70,12 +71,12 @@ describe('LoggingInterceptor', () => {
   it('does not call logger.log() or logger.error() directly', async () => {
     const { context } = createHttpContext();
     const next: CallHandler = { handle: () => of({ status: 'ok' }) };
-    const logSpy = jest.fn();
-    const errorSpy = jest.fn();
+    const logSpy = vi.fn();
+    const errorSpy = vi.fn();
 
     // Attach spy methods that should NOT be called
     const interceptorWithSpy = new LoggingInterceptor();
-    (interceptorWithSpy as unknown as { logger: { log: jest.Mock; error: jest.Mock } }).logger = {
+    (interceptorWithSpy as unknown as { logger: { log: Mock; error: Mock } }).logger = {
       log: logSpy,
       error: errorSpy,
     };
@@ -99,7 +100,7 @@ describe('LoggingInterceptor', () => {
 
   it('handles missing request.log gracefully', async () => {
     const request: Record<string, unknown> = {
-      get: jest.fn(),
+      get: vi.fn(),
       ip: '127.0.0.1',
       method: 'GET',
       path: '/test',

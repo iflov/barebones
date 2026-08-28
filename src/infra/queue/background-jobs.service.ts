@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { MESSAGE_QUEUE, type MessageQueuePort } from '../../common/messaging/message-queue.port';
+import { MESSAGE_QUEUE, type MessageQueuePort } from '../../common/messaging/message-queue.port.js';
 
 @Injectable()
 export class BackgroundJobsService {

@@ -4,9 +4,9 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 
-import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { buildCorsOptions } from './config/cors.config';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor.js';
+import { buildCorsOptions } from './config/cors.config.js';
 
 function isTruthy(value: string | boolean | undefined): boolean {
   return value === true || value === 'true';

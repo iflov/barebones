@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import type { Queue } from 'bullmq';
 import { Counter, Gauge, Histogram } from 'prom-client';
 
-import { MetricsService } from '../metrics/metrics.service';
-import { BACKGROUND_JOBS_QUEUE } from './background-jobs.constants';
+import { MetricsService } from '../metrics/metrics.service.js';
+import { BACKGROUND_JOBS_QUEUE } from './background-jobs.constants.js';
 
 @Injectable()
 export class BullmqMetricsService {

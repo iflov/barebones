@@ -10,8 +10,8 @@ import { Gauge, Histogram } from 'prom-client';
 import { Observable } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
 
-import { normalizeHttpRoute } from './http-metrics.util';
-import { MetricsService } from './metrics.service';
+import { normalizeHttpRoute } from './http-metrics.util.js';
+import { MetricsService } from './metrics.service.js';
 
 function resolveStatusCode(error: unknown, response: Response): string {
   if (error instanceof HttpException) {

@@ -4,7 +4,7 @@ coverage
 .env
 .env.local
 .DS_Store
-yarn-error.log
+pnpm-debug.log
 *.tfstate
 *.tfstate.*
 .terraform/

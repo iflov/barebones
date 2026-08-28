@@ -1,7 +1,7 @@
-import * as Joi from 'joi';
+import Joi from 'joi';
 
-import { activeScaffold } from './active-scaffold';
-import { CORS_WILDCARD, hasWildcardOrigin, parseCorsOrigins } from './cors.config';
+import { activeScaffold } from './active-scaffold.js';
+import { CORS_WILDCARD, hasWildcardOrigin, parseCorsOrigins } from './cors.config.js';
 
 const activeDbPort = activeScaffold.rdb.database === 'postgres' ? 5432 : 3306;
 const activeDockerDbHost = activeScaffold.rdb.database;

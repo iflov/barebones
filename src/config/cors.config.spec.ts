@@ -1,6 +1,6 @@
 import type { ConfigService } from '@nestjs/config';
 
-import { buildCorsOptions, hasWildcardOrigin, parseCorsOrigins } from './cors.config';
+import { buildCorsOptions, hasWildcardOrigin, parseCorsOrigins } from './cors.config.js';
 
 function createConfigService(values: Record<string, unknown>): ConfigService {
   return {

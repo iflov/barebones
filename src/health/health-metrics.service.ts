@@ -2,8 +2,8 @@ import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { Gauge } from 'prom-client';
 
-import { MetricsService } from '../infra/metrics/metrics.service';
-import { HealthCoordinator } from './application/health.coordinator';
+import { MetricsService } from '../infra/metrics/metrics.service.js';
+import { HealthCoordinator } from './application/health.coordinator.js';
 
 /**
  * 헬스체크 결과를 Prometheus Gauge 메트릭으로 노출하는 서비스

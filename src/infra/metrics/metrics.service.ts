@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { collectDefaultMetrics, Gauge, Registry } from 'prom-client';
 
-import { observabilityConfig } from '../../config/observability.config';
+import { observabilityConfig } from '../../config/observability.config.js';
 
 /**
  * Prometheus 메트릭의 중앙 관리자 (싱글톤)

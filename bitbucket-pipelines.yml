@@ -1,14 +1,33 @@
-image: node:24
+image: node:24.18.1
+
+definitions:
+  caches:
+    pnpm: .pnpm-store
+  services:
+    postgres:
+      image: postgres:17-alpine
+      variables:
+        POSTGRES_DB: app
+        POSTGRES_PASSWORD: app
+        POSTGRES_USER: app
 
 pipelines:
   default:
     - step:
-        name: Install, lint, test, build
+        name: Validate
         caches:
-          - node
+          - pnpm
+        services:
+          - postgres
         script:
-          - yarn install --frozen-lockfile
-          - yarn lint
-          - yarn typecheck
-          - yarn test
-          - yarn build
+          - corepack enable
+          - corepack prepare pnpm@11.22.0 --activate
+          - pnpm config set store-dir .pnpm-store
+          - pnpm install --frozen-lockfile
+          - pnpm check:scaffold
+          - pnpm check:observability
+          - pnpm lint
+          - pnpm typecheck
+          - pnpm test
+          - DB_PORT=5432 pnpm test:e2e
+          - pnpm build

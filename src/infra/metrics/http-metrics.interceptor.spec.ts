@@ -3,7 +3,7 @@ import { HttpException } from '@nestjs/common';
 import { Registry } from 'prom-client';
 import { lastValueFrom, of, Subject, throwError } from 'rxjs';
 
-import { MetricsInterceptor } from './http-metrics.interceptor';
+import { MetricsInterceptor } from './http-metrics.interceptor.js';
 
 describe('MetricsInterceptor', () => {
   function createContext(

@@ -3,7 +3,7 @@ import {
   materializeTypeOrmEnv,
   renderActiveScaffold,
   selectedTypeOrmDriver,
-} from './typeorm-rdb-generator';
+} from './typeorm-rdb-generator.js';
 
 const compose = `services:
   app:

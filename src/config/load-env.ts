@@ -26,7 +26,7 @@ import { config as loadDotenv } from 'dotenv';
  * `app.module.ts`가 통째로 실행된다. 그래서 **import 자체로** 로드해야 한다:
  *
  * ```ts
- * import './config/load-env'; // ← AppModule import보다 위
+ * import './config/load-env.js'; // ← AppModule import보다 위
  * ```
  *
  * ## ConfigModule과 같은 목록·같은 순서를 써야 한다

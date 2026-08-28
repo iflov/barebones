@@ -22,6 +22,45 @@ export interface ScaffoldState {
   readonly rdbModuleSource: string;
 }
 
+interface TypeOrmMigrationState {
+  readonly builtMigrationFiles?: readonly string[];
+  readonly databaseConfigSource: string;
+  readonly sourceMigrationFiles: readonly string[];
+}
+
+interface ScaffoldTemplateSource {
+  readonly path: string;
+  readonly source: string;
+}
+
+/** ESM으로 materialize되는 template에 NodeNext 상대 지정자 확장자가 빠지는 것을 막는다. */
+export function scaffoldTemplateEsmIssues(templates: readonly ScaffoldTemplateSource[]): string[] {
+  const issues: string[] = [];
+  const relativeSpecifierPatterns = [
+    /\bfrom\s+(['"])(\.\.?\/[^'"]+)\1/g,
+    /^\s*import\s+(['"])(\.\.?\/[^'"]+)\1/g,
+  ];
+
+  for (const template of templates) {
+    const lines = template.source.split('\n');
+    lines.forEach((line, index) => {
+      for (const pattern of relativeSpecifierPatterns) {
+        pattern.lastIndex = 0;
+        for (const match of line.matchAll(pattern)) {
+          const specifier = match[2];
+          if (!/\.(?:[cm]?js|json|node)$/.test(specifier)) {
+            issues.push(
+              `${template.path}:${index + 1} relative ESM specifier must include an extension: ${specifier}`,
+            );
+          }
+        }
+      }
+    });
+  }
+
+  return issues;
+}
+
 interface OrmProfileContract {
   readonly appModuleMarker: string;
   readonly requiredDependencies: readonly string[];
@@ -102,6 +141,45 @@ export class ScaffoldConfigError extends Error {
     super(message);
     this.name = 'ScaffoldConfigError';
   }
+}
+
+function migrationNames(files: readonly string[], extension: '.js' | '.ts'): string[] {
+  return files
+    .filter((file) => file.endsWith(extension))
+    .map((file) => file.slice(0, -extension.length))
+    .sort();
+}
+
+/** TypeORM migration discovery가 CWD에 묶이거나 빌드 중 조용히 누락되는 것을 막는다. */
+export function typeOrmMigrationConsistencyIssues(
+  config: ScaffoldConfig,
+  state: TypeOrmMigrationState,
+): string[] {
+  if (config.rdb.orm !== 'typeorm') {
+    return [];
+  }
+
+  const issues: string[] = [];
+  if (
+    !state.databaseConfigSource.includes('fileURLToPath(import.meta.url)') ||
+    !state.databaseConfigSource.includes('../database/migrations/*{.ts,.js}')
+  ) {
+    issues.push('TypeORM migrations must use a self-locating import.meta.url glob');
+  }
+
+  if (state.builtMigrationFiles === undefined) {
+    return issues;
+  }
+
+  const sourceNames = migrationNames(state.sourceMigrationFiles, '.ts');
+  const builtNames = migrationNames(state.builtMigrationFiles, '.js');
+  if (sourceNames.join('\0') !== builtNames.join('\0')) {
+    issues.push(
+      `compiled TypeORM migrations do not match source: source=[${sourceNames.join(', ')}] built=[${builtNames.join(', ')}]`,
+    );
+  }
+
+  return issues;
 }
 
 export function parseScaffoldConfig(input: unknown): ScaffoldConfig {

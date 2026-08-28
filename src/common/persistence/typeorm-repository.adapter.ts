@@ -21,14 +21,14 @@ import {
   RepositoryContractError,
   UniqueConstraintError,
   type WhereFilter,
-} from './repository.port';
+} from './repository.port.js';
 
 /**
  * `IRepository<T>`의 TypeORM 구현.
  *
  * **이 프로젝트에서 TypeORM 타입을 아는 곳은 세 군데뿐이다** (constitution A-1-R):
  * `src/common/persistence/`(이 파일), `src/config/`(연결 옵션), `src/database/`(마이그레이션).
- * `yarn lint`가 나머지 전부에서 TypeORM import를 막는다.
+ * `pnpm lint`가 나머지 전부에서 TypeORM import를 막는다.
  *
  * 다른 ORM으로 옮길 때 새로 쓰는 파일은 이것 하나다. 도메인 Repository는
  * `IRepository<T>`만 보고 있으므로 영향을 받지 않는다.

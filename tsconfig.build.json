@@ -16,6 +16,8 @@
     "test",
     "scripts",
     "eslint.config.mjs",
+    "vitest.config.mts",
+    "vitest.config.e2e.mts",
     "**/*.spec.ts",
     "**/*.e2e-spec.ts"
   ]

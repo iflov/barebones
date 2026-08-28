@@ -36,6 +36,26 @@ adapters/in
 - 배포 환경변수만으로 ORM이나 RDB 종류를 바꾸지 않는다.
 - RDB와 MongoDB를 함께 쓸 수 있지만 한 aggregate의 authoritative store는 하나다.
 - 두 저장소 동시 쓰기가 필요하면 dual-write 대신 outbox/event 기반 동기화를 먼저 검토한다.
+- TypeORM entity는 소유 feature module의 `forFeature()`로 등록하고 CLI는 `*.entity.ts`를 찾는다.
+- migration glob은 `import.meta.url` 기준이어야 한다. CWD 기준 `src/...` 경로를 다시 넣지 않는다.
+- migration 생성 직후에는 실행 전에 lint fix로 type-only import를 고친다. `pnpm build`는 source와
+  `dist` migration 목록의 일치를 검사한다.
+
+## ESM
+
+- package와 build output은 native ESM이다. TypeScript 상대 import에는 `.js` 확장자를 쓴다.
+- 저장소 TypeScript 스크립트는 `tsx`, TypeORM CLI는 `typeorm-ts-node-esm`으로 실행한다.
+- CommonJS resolver hook이나 `NODE_OPTIONS --require` 우회를 다시 추가하지 않는다.
+
+## 툴체인 버전
+
+- TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. `@nestjs/cli`, `typescript-eslint`, `ts-node`가
+  TypeScript 7.0이 제거한 programmatic compiler API에 의존한다. `nest build`가 명시적으로 거부한다.
+  해제 조건은 **TypeScript 7.1의 compiler API 복귀 + typescript-eslint의 7 지원**이며 둘 다 필요하다.
+  근거와 실측치는 `CLAUDE.md`의 "툴체인 버전 정책"에 있다.
+- **`nest build --builder swc`로 바꾸지 않는다.** 타입 검사를 생략해 빨라지는 것이고, `.swcrc`가
+  `tsconfig.json`과 별개의 진실 원천이 되며, decorator metadata가 재구현이라 새 entity 경계가
+  검증되지 않았다. TypeScript 7 차단도 풀지 못한다.
 
 ## Redis and messaging
 
@@ -64,13 +84,13 @@ adapters/in
 변경 범위에 맞는 검증을 수행하고 통과 근거 없이 완료를 선언하지 않는다.
 
 ```bash
-yarn check:scaffold
-yarn check:observability
-yarn lint
-yarn typecheck
-yarn test
-DB_PORT=15432 yarn test:e2e
-yarn build
+pnpm check:scaffold
+pnpm check:observability
+pnpm lint
+pnpm typecheck
+pnpm test
+DB_PORT=15432 pnpm test:e2e
+pnpm build
 docker compose config --quiet
 ```
 

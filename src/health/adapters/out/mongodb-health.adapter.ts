@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { type Connection, ConnectionStates } from 'mongoose';
+import mongoose, { type Connection } from 'mongoose';
 
 import type {
   HealthIndicatorPort,
   HealthIndicatorSnapshot,
-} from '../../application/ports/health-indicator.port';
+} from '../../application/ports/health-indicator.port.js';
 
 @Injectable()
 export class MongodbHealthAdapter implements HealthIndicatorPort {
@@ -14,7 +14,7 @@ export class MongodbHealthAdapter implements HealthIndicatorPort {
   constructor(@InjectConnection() private readonly connection: Connection) {}
 
   async check(): Promise<HealthIndicatorSnapshot> {
-    if (this.connection.readyState !== ConnectionStates.connected) {
+    if (this.connection.readyState !== mongoose.ConnectionStates.connected) {
       return { message: `readyState=${this.connection.readyState}`, status: 'down' };
     }
 

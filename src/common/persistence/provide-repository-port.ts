@@ -2,8 +2,8 @@ import type { Provider, Type } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import type { ObjectLiteral, Repository } from 'typeorm';
 
-import type { IRepository } from './repository.port';
-import { TypeOrmRepositoryAdapter } from './typeorm-repository.adapter';
+import type { IRepository } from './repository.port.js';
+import { TypeOrmRepositoryAdapter } from './typeorm-repository.adapter.js';
 
 /**
  * 엔티티와 묶인 주입 토큰.

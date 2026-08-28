@@ -1,8 +1,8 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Entity, PrimaryColumn, type Repository } from 'typeorm';
 
-import { createRepositoryToken, provideRepositoryPort } from './provide-repository-port';
-import { TypeOrmRepositoryAdapter } from './typeorm-repository.adapter';
+import { createRepositoryToken, provideRepositoryPort } from './provide-repository-port.js';
+import { TypeOrmRepositoryAdapter } from './typeorm-repository.adapter.js';
 
 @Entity({ name: 'provide_repository_port_test_rows' })
 class TestRow {

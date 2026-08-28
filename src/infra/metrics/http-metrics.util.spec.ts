@@ -1,4 +1,4 @@
-import { normalizeHttpRoute } from './http-metrics.util';
+import { normalizeHttpRoute } from './http-metrics.util.js';
 
 describe('normalizeHttpRoute', () => {
   it('builds a normalized route pattern from baseUrl and route path', () => {

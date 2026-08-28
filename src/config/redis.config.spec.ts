@@ -5,7 +5,7 @@ import {
   buildRedisOptions,
   buildRedisUrl,
   isFeatureEnabled,
-} from './redis.config';
+} from './redis.config.js';
 
 function createConfigService(values: Record<string, unknown>): ConfigService {
   return {

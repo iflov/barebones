@@ -7,7 +7,7 @@ import {
 import type { Response } from 'express';
 import { map, type Observable } from 'rxjs';
 
-import { RAW_RESPONSE_KEY } from '../decorators/raw-response.decorator';
+import { RAW_RESPONSE_KEY } from '../decorators/raw-response.decorator.js';
 
 interface ApiEnvelope<T> {
   code: number;

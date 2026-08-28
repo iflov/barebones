@@ -1,6 +1,6 @@
 # Barebones NestJS Scaffold
 
-도메인과 인증을 포함하지 않는 NestJS 11 백엔드 시작점입니다. 파생 프로젝트가 필요한 도메인만
+도메인과 인증을 포함하지 않는 NestJS 12 백엔드 시작점입니다. 파생 프로젝트가 필요한 도메인만
 추가할 수 있도록 헥사고날 경계, CQRS-lite, 로컬 Docker 인프라와 운영 기본값을 제공합니다.
 
 ## 포함 범위
@@ -18,6 +18,24 @@
 
 인증·인가·사용자·관리자 모듈은 의도적으로 없습니다.
 
+## ESM과 TypeORM migration
+
+애플리케이션과 빌드 산출물은 native ESM입니다. TypeScript의 상대 import에는 출력 파일 기준
+`.js` 확장자를 씁니다. 저장소의 TypeScript 운영 스크립트는 `tsx`, TypeORM CLI는
+`typeorm-ts-node-esm`으로 실행합니다.
+
+```bash
+pnpm migration:generate
+pnpm exec eslint --fix src/database/migrations
+pnpm migration:run
+pnpm migration:revert
+```
+
+TypeORM 생성 직후의 migration은 type-only 심볼을 일반 import로 출력할 수 있으므로 앱이나 CLI를
+다시 실행하기 전에 lint fix를 적용합니다. pre-commit도 같은 수정을 하지만 생성 직후 실행 경로는
+보호하지 못합니다. migration glob은 설정 모듈 위치를 기준으로 `src`와 `dist`를 스스로 찾고,
+`pnpm build`는 source migration과 build artifact가 일치하지 않으면 실패합니다.
+
 ## 시작하기
 
 ```bash
@@ -33,21 +51,21 @@ docker compose logs -f app
 ## 스캐폴드 선택
 
 현재 materialized 선택은 [barebones.config.json](./barebones.config.json)에 기록됩니다.
-선택값과 패키지, DB 드라이버, 활성 RDB 모듈, `.env.example`, Docker Compose가 다르면 빌드가
-즉시 실패합니다.
+선택값과 패키지, DB 드라이버, 활성 RDB 모듈, `.env.example`, Docker Compose 또는 TypeORM
+migration 산출물이 다르면 빌드가 즉시 실패합니다.
 
 ```bash
-yarn check:scaffold
+pnpm check:scaffold
 ```
 
 ORM이나 DB는 배포 환경변수로 바꾸지 않습니다. 생성기가 조합을 만들고 검증기가 drift를 막습니다.
 
 ```bash
 # 먼저 변경 계획만 확인
-yarn scaffold:select --orm=prisma --database=postgres
+pnpm scaffold:select --orm=prisma --database=postgres
 
 # 파일·패키지·Compose를 실제로 교체하고 검증
-yarn scaffold:select --orm=drizzle --database=mariadb --apply
+pnpm scaffold:select --orm=drizzle --database=mariadb --apply
 ```
 
 허용값은 ORM `typeorm | prisma | mikroorm | drizzle`, RDB
@@ -108,13 +126,13 @@ terraform plan
 ## 검증
 
 ```bash
-yarn check:scaffold
-yarn check:observability
-yarn lint
-yarn typecheck
-yarn test
-DB_PORT=15432 yarn test:e2e
-yarn build
+pnpm check:scaffold
+pnpm check:observability
+pnpm lint
+pnpm typecheck
+pnpm test
+DB_PORT=15432 pnpm test:e2e
+pnpm build
 docker compose config --quiet
 ```
 

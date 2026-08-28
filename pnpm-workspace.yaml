@@ -1,0 +1,37 @@
+packages:
+  - .
+
+allowBuilds:
+  '@nestjs/core': true
+  '@scarf/scarf': true
+  # tsx executes TypeScript scripts through esbuild; keep its install script explicitly scoped.
+  esbuild: true
+  msgpackr-extract: true
+  unrs-resolver: true
+
+# NestJS 12 was published inside pnpm's active minimum-release-age window. Keep this
+# exception exact to the selected release set; remove it after the window expires.
+minimumReleaseAgeExclude:
+  - '@nestjs/bull-shared@12.0.0'
+  - '@nestjs/bullmq@12.0.0'
+  - '@nestjs/cache-manager@12.0.0'
+  - '@nestjs/cli@12.0.0'
+  - '@nestjs/common@12.0.1'
+  - '@nestjs/config@12.0.0'
+  - '@nestjs/core@12.0.1'
+  - '@nestjs/cqrs@12.0.0'
+  - '@nestjs/mapped-types@12.0.0'
+  - '@nestjs/mongoose@12.0.0'
+  - '@nestjs/platform-express@12.0.1'
+  - '@nestjs/schematics@12.0.0'
+  - '@nestjs/swagger@12.0.0'
+  - '@nestjs/testing@12.0.1'
+  - '@nestjs/typeorm@12.0.0'
+
+peerDependencyRules:
+  allowedVersions:
+    # @nestjs/throttler#2668가 Nest 12 peer 지원을 릴리스하면 제거한다.
+    '@nestjs/throttler>@nestjs/common': '^12.0.1'
+    '@nestjs/throttler>@nestjs/core': '^12.0.1'
+    # nestjs-pino가 @nestjs/common 12 peer 범위를 게시하면 제거한다.
+    'nestjs-pino>@nestjs/common': '^12.0.1'

@@ -1,8 +1,14 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import type { ConfigService } from '@nestjs/config';
+import type { Mock } from 'vitest';
 
-import { buildPinoConfig, isNoisePath, REQUEST_ID_HEADER, resolveRequestId } from './pino.config';
+import {
+  buildPinoConfig,
+  isNoisePath,
+  REQUEST_ID_HEADER,
+  resolveRequestId,
+} from './pino.config.js';
 
 function createConfigService(values: Record<string, unknown>): ConfigService {
   return {
@@ -14,8 +20,8 @@ function createRequest(headers: Record<string, string> = {}): IncomingMessage {
   return { headers } as IncomingMessage;
 }
 
-function createResponse(): { response: ServerResponse; setHeader: jest.Mock } {
-  const setHeader = jest.fn();
+function createResponse(): { response: ServerResponse; setHeader: Mock } {
+  const setHeader = vi.fn();
 
   return { response: { setHeader } as unknown as ServerResponse, setHeader };
 }

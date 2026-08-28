@@ -2,7 +2,7 @@ import type { ArgumentsHost } from '@nestjs/common';
 import { HttpException } from '@nestjs/common';
 import type { Logger } from 'nestjs-pino';
 
-import { AllExceptionsFilter } from './all-exceptions.filter';
+import { AllExceptionsFilter } from './all-exceptions.filter.js';
 
 describe('AllExceptionsFilter', () => {
   let filter: AllExceptionsFilter;
@@ -10,7 +10,7 @@ describe('AllExceptionsFilter', () => {
 
   beforeEach(() => {
     logger = {
-      error: jest.fn(),
+      error: vi.fn(),
     };
     filter = new AllExceptionsFilter(logger as Logger);
   });
@@ -18,8 +18,8 @@ describe('AllExceptionsFilter', () => {
   function createHost(headersSent = false) {
     const response = {
       headersSent,
-      json: jest.fn(),
-      status: jest.fn().mockReturnThis(),
+      json: vi.fn(),
+      status: vi.fn().mockReturnThis(),
     };
 
     const host = {

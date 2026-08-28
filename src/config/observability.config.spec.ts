@@ -1,4 +1,4 @@
-import { METRICS_ROUTE_PATH, observabilityConfig } from './observability.config';
+import { METRICS_ROUTE_PATH, observabilityConfig } from './observability.config.js';
 
 describe('observabilityConfig', () => {
   it('loads the shared observability defaults from config', () => {

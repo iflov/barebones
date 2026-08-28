@@ -1,26 +1,31 @@
 import type { ConfigService } from '@nestjs/config';
+import type { Mock } from 'vitest';
 
-import { RedisService } from './redis.service';
+import { RedisService } from './redis.service.js';
 
 interface MockRedisClient {
-  connect: jest.Mock<Promise<void>, []>;
-  del: jest.Mock<Promise<number>, [string, ...string[]]>;
-  expire: jest.Mock<Promise<number>, [string, number]>;
-  get: jest.Mock<Promise<string | null>, [string]>;
-  ping: jest.Mock<Promise<string>, []>;
-  quit: jest.Mock<Promise<string>, []>;
-  sadd: jest.Mock<Promise<number>, [string, ...string[]]>;
-  scan: jest.Mock<Promise<[string, string[]]>, [string, 'MATCH', string, 'COUNT', number]>;
-  smembers: jest.Mock<Promise<string[]>, [string]>;
-  srem: jest.Mock<Promise<number>, [string, ...string[]]>;
-  set: jest.Mock<Promise<string>, [string, string] | [string, string, 'EX', number]>;
+  connect: Mock<() => Promise<void>>;
+  del: Mock<(...args: [string, ...string[]]) => Promise<number>>;
+  expire: Mock<(key: string, ttl: number) => Promise<number>>;
+  get: Mock<(key: string) => Promise<string | null>>;
+  ping: Mock<() => Promise<string>>;
+  quit: Mock<() => Promise<string>>;
+  sadd: Mock<(...args: [string, ...string[]]) => Promise<number>>;
+  scan: Mock<(...args: [string, 'MATCH', string, 'COUNT', number]) => Promise<[string, string[]]>>;
+  smembers: Mock<(key: string) => Promise<string[]>>;
+  srem: Mock<(...args: [string, ...string[]]) => Promise<number>>;
+  set: Mock<(...args: [string, string] | [string, string, 'EX', number]) => Promise<string>>;
   status: string;
 }
 
 let redisClient: MockRedisClient;
 
-jest.mock('ioredis', () => {
-  return jest.fn((): MockRedisClient => redisClient);
+vi.mock('ioredis', () => {
+  return {
+    Redis: vi.fn(function RedisMock(): MockRedisClient {
+      return redisClient;
+    }),
+  };
 });
 
 function createConfigService(values: Record<string, unknown>): ConfigService {
@@ -31,19 +36,19 @@ function createConfigService(values: Record<string, unknown>): ConfigService {
 
 describe('RedisService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     redisClient = {
-      connect: jest.fn().mockResolvedValue(undefined),
-      del: jest.fn().mockResolvedValue(1),
-      expire: jest.fn().mockResolvedValue(1),
-      get: jest.fn().mockResolvedValue('value'),
-      ping: jest.fn().mockResolvedValue('PONG'),
-      quit: jest.fn().mockResolvedValue('OK'),
-      sadd: jest.fn().mockResolvedValue(1),
-      scan: jest.fn().mockResolvedValue(['0', []]),
-      smembers: jest.fn().mockResolvedValue(['member']),
-      srem: jest.fn().mockResolvedValue(1),
-      set: jest.fn().mockResolvedValue('OK'),
+      connect: vi.fn().mockResolvedValue(undefined),
+      del: vi.fn().mockResolvedValue(1),
+      expire: vi.fn().mockResolvedValue(1),
+      get: vi.fn().mockResolvedValue('value'),
+      ping: vi.fn().mockResolvedValue('PONG'),
+      quit: vi.fn().mockResolvedValue('OK'),
+      sadd: vi.fn().mockResolvedValue(1),
+      scan: vi.fn().mockResolvedValue(['0', []]),
+      smembers: vi.fn().mockResolvedValue(['member']),
+      srem: vi.fn().mockResolvedValue(1),
+      set: vi.fn().mockResolvedValue('OK'),
       status: 'ready',
     };
   });

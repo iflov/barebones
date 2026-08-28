@@ -2,7 +2,43 @@ import {
   parseScaffoldConfig,
   scaffoldConsistencyIssues,
   type ScaffoldState,
-} from './scaffold.config';
+  scaffoldTemplateEsmIssues,
+  typeOrmMigrationConsistencyIssues,
+} from './scaffold.config.js';
+
+describe('scaffold template ESM imports', () => {
+  it('rejects extensionless relative import and export specifiers', () => {
+    expect(
+      scaffoldTemplateEsmIssues([
+        {
+          path: 'scaffold/example.ts.template',
+          source: [
+            "import './setup';",
+            "import { dependency } from './dependency.js';",
+            "import { probe } from '../rdb-health-probe.port';",
+            "export { value } from '../value';",
+          ].join('\n'),
+        },
+      ]),
+    ).toEqual([
+      'scaffold/example.ts.template:1 relative ESM specifier must include an extension: ./setup',
+      'scaffold/example.ts.template:3 relative ESM specifier must include an extension: ../rdb-health-probe.port',
+      'scaffold/example.ts.template:4 relative ESM specifier must include an extension: ../value',
+    ]);
+  });
+
+  it('accepts an empty template set and non-relative package imports', () => {
+    expect(scaffoldTemplateEsmIssues([])).toEqual([]);
+    expect(
+      scaffoldTemplateEsmIssues([
+        {
+          path: 'scaffold/example.ts.template',
+          source: "export { Injectable } from '@nestjs/common';",
+        },
+      ]),
+    ).toEqual([]);
+  });
+});
 
 function typeOrmPostgresState(): ScaffoldState {
   return {
@@ -115,6 +151,45 @@ describe('scaffold config', () => {
         '.env.example DB_TYPE does not match selected database: mysql',
         'docker-compose.yml does not provide selected database: mysql',
       ]),
+    );
+  });
+});
+
+describe('TypeORM migration consistency', () => {
+  const config = parseScaffoldConfig({ rdb: { database: 'postgres', orm: 'typeorm' } });
+  const selfLocatingConfig = `
+    fileURLToPath(import.meta.url)
+    ../database/migrations/*{.ts,.js}
+  `;
+
+  it('accepts an empty source and build migration directory', () => {
+    expect(
+      typeOrmMigrationConsistencyIssues(config, {
+        builtMigrationFiles: [],
+        databaseConfigSource: selfLocatingConfig,
+        sourceMigrationFiles: ['.gitkeep'],
+      }),
+    ).toEqual([]);
+  });
+
+  it('rejects a CWD-relative migration glob even when there are no migrations', () => {
+    expect(
+      typeOrmMigrationConsistencyIssues(config, {
+        databaseConfigSource: "const MIGRATIONS = ['src/database/migrations/*{.ts,.js}']",
+        sourceMigrationFiles: ['.gitkeep'],
+      }),
+    ).toContain('TypeORM migrations must use a self-locating import.meta.url glob');
+  });
+
+  it('rejects a migration omitted from the build output', () => {
+    expect(
+      typeOrmMigrationConsistencyIssues(config, {
+        builtMigrationFiles: [],
+        databaseConfigSource: selfLocatingConfig,
+        sourceMigrationFiles: ['1787900000000-CreateWidget.ts'],
+      }),
+    ).toContain(
+      'compiled TypeORM migrations do not match source: source=[1787900000000-CreateWidget] built=[]',
     );
   });
 });

@@ -1,8 +1,8 @@
 import { Injectable, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 
-import { buildRedisOptions, isFeatureEnabled } from '../../config/redis.config';
+import { buildRedisOptions, isFeatureEnabled } from '../../config/redis.config.js';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {

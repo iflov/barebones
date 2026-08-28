@@ -1,9 +1,9 @@
-import { BackgroundJobsService } from './background-jobs.service';
+import { BackgroundJobsService } from './background-jobs.service.js';
 
 describe('BackgroundJobsService', () => {
   function createMocks() {
     const mockQueue = {
-      publish: jest.fn().mockResolvedValue(undefined),
+      publish: vi.fn().mockResolvedValue(undefined),
     };
 
     const service = new (class extends BackgroundJobsService {
@@ -36,7 +36,7 @@ describe('BackgroundJobsService', () => {
 
     it('awaits the queue.add call', async () => {
       const mockQueue = {
-        publish: jest.fn().mockRejectedValue(new Error('Broker down')),
+        publish: vi.fn().mockRejectedValue(new Error('Broker down')),
       };
 
       const service = new (class extends BackgroundJobsService {

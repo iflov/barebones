@@ -1,16 +1,18 @@
-import { createKeyv } from '@keyv/redis';
 import type { ConfigService } from '@nestjs/config';
 import { CacheableMemory } from 'cacheable';
-import { Keyv } from 'keyv';
+import type { Keyv as ImportKeyv } from 'keyv' with { 'resolution-mode': 'import' };
 
-import { buildRedisUrl, isFeatureEnabled } from './redis.config';
+import { buildRedisUrl, isFeatureEnabled } from './redis.config.js';
 
 interface CacheStoreOptions {
-  stores: Keyv[];
+  stores: ImportKeyv[];
   ttl: number;
 }
 
-export function buildCacheOptions(configService: ConfigService): CacheStoreOptions {
+export async function buildCacheOptions(configService: ConfigService): Promise<CacheStoreOptions> {
+  // NestJS 12의 cache-manager 타입은 Keyv의 ESM export를 기준으로 한다. CJS 정적 import는
+  // 별도 nominal type(private field)을 만들므로, 런타임도 import export를 사용해 타입과 맞춘다.
+  const [{ createKeyv }, { Keyv }] = await Promise.all([import('@keyv/redis'), import('keyv')]);
   const ttl = configService.get<number>('CACHE_TTL') ?? 60_000;
   const stores = [
     new Keyv({

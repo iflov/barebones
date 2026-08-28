@@ -1,14 +1,40 @@
-FROM node:24.14.0-alpine
+FROM node:24.18.1-alpine AS prod-deps
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+RUN corepack enable && corepack prepare pnpm@11.22.0 --activate
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --prod --frozen-lockfile
+
+FROM node:24.18.1-alpine AS build
+
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@11.22.0 --activate
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
+RUN pnpm build
 
-RUN yarn build
+FROM node:24.18.1-alpine AS runtime
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN corepack enable && corepack prepare pnpm@11.22.0 --activate
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/package.json ./package.json
+COPY --from=prod-deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=prod-deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=build /app/config ./config
+COPY --from=build /app/dist ./dist
+USER node
 
 EXPOSE 3000
 
-CMD ["yarn", "start:prod"]
+CMD ["pnpm", "start:prod"]
