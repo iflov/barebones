@@ -239,9 +239,9 @@ function configurePackages(manifest: PackageManifest, selection: ScaffoldConfig)
     manifest.dependencies[driver] = driver === 'pg' ? '^8.16.3' : '^3.15.1';
     manifest.scripts.typeorm = 'typeorm-ts-node-commonjs -d src/config/typeorm-data-source.ts';
     manifest.scripts['migration:generate'] =
-      'yarn typeorm migration:generate src/database/migrations/AutoMigration';
-    manifest.scripts['migration:run'] = 'yarn typeorm migration:run';
-    manifest.scripts['migration:revert'] = 'yarn typeorm migration:revert';
+      'pnpm typeorm migration:generate src/database/migrations/AutoMigration';
+    manifest.scripts['migration:run'] = 'pnpm typeorm migration:run';
+    manifest.scripts['migration:revert'] = 'pnpm typeorm migration:revert';
     return;
   }
 
@@ -326,18 +326,18 @@ function main(): void {
     });
   }
 
-  const install = spawnSync('yarn', ['install', '--ignore-scripts'], { stdio: 'inherit' });
-  if (install.status !== 0) throw new Error('yarn install failed');
+  const install = spawnSync('pnpm', ['install', '--ignore-scripts'], { stdio: 'inherit' });
+  if (install.status !== 0) throw new Error('pnpm install failed');
 
   if (selection.rdb.orm === 'prisma') {
-    const result = spawnSync('yarn', ['prisma', 'generate'], { stdio: 'inherit' });
+    const result = spawnSync('pnpm', ['exec', 'prisma', 'generate'], { stdio: 'inherit' });
     if (result.status !== 0) throw new Error(`${selection.rdb.orm} client generation failed`);
   }
 
   for (const command of [
-    ['yarn', 'check:scaffold'],
-    ['yarn', 'lint'],
-    ['yarn', 'typecheck'],
+    ['pnpm', 'check:scaffold'],
+    ['pnpm', 'lint'],
+    ['pnpm', 'typecheck'],
   ]) {
     const result = spawnSync(command[0], command.slice(1), { stdio: 'inherit' });
     if (result.status !== 0) throw new Error(`${command.join(' ')} failed`);

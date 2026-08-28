@@ -1,0 +1,16 @@
+packages:
+  - .
+
+allowBuilds:
+  '@nestjs/core': true
+  '@scarf/scarf': true
+  msgpackr-extract: true
+  unrs-resolver: true
+
+peerDependencyRules:
+  allowedVersions:
+    # @nestjs/throttler#2668가 Nest 12 peer 지원을 릴리스하면 제거한다.
+    '@nestjs/throttler>@nestjs/common': '^12.0.1'
+    '@nestjs/throttler>@nestjs/core': '^12.0.1'
+    # nestjs-pino가 @nestjs/common 12 peer 범위를 게시하면 제거한다.
+    'nestjs-pino>@nestjs/common': '^12.0.1'
