@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "NodeNext",
-    // NestJS 12 packages are ESM while this application remains CommonJS.
+    // NodeNext keeps TypeScript's module resolution aligned with the ESM runtime.
     "isolatedModules": true,
     "declaration": true,
     "removeComments": true,

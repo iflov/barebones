@@ -64,6 +64,7 @@ TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. 2026-08-28 실측 
   The installed TypeScript version (7.0.2) does not expose the programmatic compiler API
   that the Nest CLI requires. TypeScript 7.0 ships the "tsc" executable only;
   the compiler API is expected to return in 7.1.
+  Please install TypeScript 6 (e.g. "npm i -D typescript@^6") until then.
   ```
 
 - `typescript-eslint`는 최신 `8.68.0`도 peer가 `<6.1.0`이라 7을 지원하지 않는다.
@@ -76,14 +77,16 @@ TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. 2026-08-28 실측 
 1. TypeScript **7.1**의 compiler API 복귀 (7.0 에러 메시지가 7.1을 명시한다)
 2. `typescript-eslint`의 7 지원 릴리스
 
-기다릴 가치는 있다. 같은 코드에서 `tsc --noEmit` warm run이 **6.0.3에서 1200ms, 7.0.2에서 265ms**로
-약 4.5배 차이였다. 7.0은 네이티브(Go) 포트이고 플랫폼별 바이너리를 optionalDependencies로 싣는다.
+기다릴 가치는 있다. 같은 코드에서 direct executable `tsc --noEmit` warm run이 **6.0.3에서
+1180–1230ms, 7.0.2에서 240–260ms**였다. 7.0은 네이티브(Go) 포트이고 플랫폼별 바이너리를
+optionalDependencies로 싣는다.
 
 ### SWC 빌더는 쓰지 않는다
 
 `nest build --builder swc`를 2026-08-28에 평가했고 채택하지 않았다.
 
-- build는 `2858ms → 914ms`로 빨라지지만 **타입 검사를 하지 않는다.** 속도의 출처가 검사 생략이다.
+- warm direct executable 기준(pre/postbuild 제외) build는 `nest build` **2.00–2.38s**에서
+  `nest build --builder swc` **0.44–0.54s**로 빨라지지만 **타입 검사를 하지 않는다.** 속도의 출처가 검사 생략이다.
   TypeScript 7은 검사 자체를 빠르게 하므로 포기하는 것이 없다 — 그쪽을 기다리는 편이 낫다.
 - `.swcrc`가 `tsconfig.json`과 별개의 **두 번째 진실 원천**이 된다. 이 저장소는 선언과 실제의
   drift를 build에서 막는 구조라 동기화가 필요한 축을 늘리지 않는다.
