@@ -47,6 +47,16 @@ adapters/in
 - 저장소 TypeScript 스크립트는 `tsx`, TypeORM CLI는 `typeorm-ts-node-esm`으로 실행한다.
 - CommonJS resolver hook이나 `NODE_OPTIONS --require` 우회를 다시 추가하지 않는다.
 
+## 툴체인 버전
+
+- TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. `@nestjs/cli`, `typescript-eslint`, `ts-node`가
+  TypeScript 7.0이 제거한 programmatic compiler API에 의존한다. `nest build`가 명시적으로 거부한다.
+  해제 조건은 **TypeScript 7.1의 compiler API 복귀 + typescript-eslint의 7 지원**이며 둘 다 필요하다.
+  근거와 실측치는 `CLAUDE.md`의 "툴체인 버전 정책"에 있다.
+- **`nest build --builder swc`로 바꾸지 않는다.** 타입 검사를 생략해 빨라지는 것이고, `.swcrc`가
+  `tsconfig.json`과 별개의 진실 원천이 되며, decorator metadata가 재구현이라 새 entity 경계가
+  검증되지 않았다. TypeScript 7 차단도 풀지 못한다.
+
 ## Redis and messaging
 
 - Redis는 cache, distributed coordination, BullMQ 기본 backend로 사용할 수 있다.
