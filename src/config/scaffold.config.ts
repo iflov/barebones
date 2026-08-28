@@ -28,6 +28,39 @@ interface TypeOrmMigrationState {
   readonly sourceMigrationFiles: readonly string[];
 }
 
+interface ScaffoldTemplateSource {
+  readonly path: string;
+  readonly source: string;
+}
+
+/** ESM으로 materialize되는 template에 NodeNext 상대 지정자 확장자가 빠지는 것을 막는다. */
+export function scaffoldTemplateEsmIssues(templates: readonly ScaffoldTemplateSource[]): string[] {
+  const issues: string[] = [];
+  const relativeSpecifierPatterns = [
+    /\bfrom\s+(['"])(\.\.?\/[^'"]+)\1/g,
+    /^\s*import\s+(['"])(\.\.?\/[^'"]+)\1/g,
+  ];
+
+  for (const template of templates) {
+    const lines = template.source.split('\n');
+    lines.forEach((line, index) => {
+      for (const pattern of relativeSpecifierPatterns) {
+        pattern.lastIndex = 0;
+        for (const match of line.matchAll(pattern)) {
+          const specifier = match[2];
+          if (!/\.(?:[cm]?js|json|node)$/.test(specifier)) {
+            issues.push(
+              `${template.path}:${index + 1} relative ESM specifier must include an extension: ${specifier}`,
+            );
+          }
+        }
+      }
+    });
+  }
+
+  return issues;
+}
+
 interface OrmProfileContract {
   readonly appModuleMarker: string;
   readonly requiredDependencies: readonly string[];

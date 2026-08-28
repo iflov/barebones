@@ -2,7 +2,7 @@ import { Global, Injectable, Module, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 __DRIVER_IMPORTS__
 
-import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port.js';
 
 export const DRIZZLE_DB = Symbol('DRIZZLE_DB');
 

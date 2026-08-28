@@ -2,8 +2,43 @@ import {
   parseScaffoldConfig,
   scaffoldConsistencyIssues,
   type ScaffoldState,
+  scaffoldTemplateEsmIssues,
   typeOrmMigrationConsistencyIssues,
 } from './scaffold.config.js';
+
+describe('scaffold template ESM imports', () => {
+  it('rejects extensionless relative import and export specifiers', () => {
+    expect(
+      scaffoldTemplateEsmIssues([
+        {
+          path: 'scaffold/example.ts.template',
+          source: [
+            "import './setup';",
+            "import { dependency } from './dependency.js';",
+            "import { probe } from '../rdb-health-probe.port';",
+            "export { value } from '../value';",
+          ].join('\n'),
+        },
+      ]),
+    ).toEqual([
+      'scaffold/example.ts.template:1 relative ESM specifier must include an extension: ./setup',
+      'scaffold/example.ts.template:3 relative ESM specifier must include an extension: ../rdb-health-probe.port',
+      'scaffold/example.ts.template:4 relative ESM specifier must include an extension: ../value',
+    ]);
+  });
+
+  it('accepts an empty template set and non-relative package imports', () => {
+    expect(scaffoldTemplateEsmIssues([])).toEqual([]);
+    expect(
+      scaffoldTemplateEsmIssues([
+        {
+          path: 'scaffold/example.ts.template',
+          source: "export { Injectable } from '@nestjs/common';",
+        },
+      ]),
+    ).toEqual([]);
+  });
+});
 
 function typeOrmPostgresState(): ScaffoldState {
   return {

@@ -223,7 +223,7 @@ function configurePackages(manifest: PackageManifest, selection: ScaffoldConfig)
     'pg',
     'typeorm',
   ];
-  const removeDevDependencies = ['drizzle-kit', 'prisma'];
+  const removeDevDependencies = ['@types/pg', 'drizzle-kit', 'prisma'];
 
   removeDependencies.forEach((name) => delete manifest.dependencies[name]);
   removeDevDependencies.forEach((name) => delete manifest.devDependencies[name]);
@@ -272,6 +272,7 @@ function configurePackages(manifest: PackageManifest, selection: ScaffoldConfig)
 
   manifest.dependencies['drizzle-orm'] = '^0.45.2';
   manifest.dependencies[driver] = driver === 'pg' ? '^8.16.3' : '^3.15.1';
+  if (driver === 'pg') manifest.devDependencies['@types/pg'] = '^8.23.1';
   manifest.devDependencies['drizzle-kit'] = '^0.31.10';
   manifest.scripts['migration:generate'] = 'drizzle-kit generate';
   manifest.scripts['migration:run'] = 'drizzle-kit migrate';

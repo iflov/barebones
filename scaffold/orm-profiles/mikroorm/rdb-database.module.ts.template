@@ -2,8 +2,8 @@ import { MikroORM } from '@mikro-orm/core';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 
-import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
-import mikroOrmConfig from './mikro-orm.config';
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port.js';
+import mikroOrmConfig from './mikro-orm.config.js';
 
 @Module({
   imports: [MikroOrmModule.forRoot(mikroOrmConfig)],

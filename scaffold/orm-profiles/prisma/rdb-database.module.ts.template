@@ -2,8 +2,8 @@ import { Global, Injectable, Module, OnModuleDestroy, OnModuleInit } from '@nest
 import { ConfigService } from '@nestjs/config';
 __ADAPTER_IMPORT__
 
-import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port';
-import { PrismaClient } from '../../generated/prisma/client';
+import { RDB_HEALTH_PROBE } from '../../common/persistence/rdb-health-probe.port.js';
+import { PrismaClient } from '../../generated/prisma/client.js';
 
 export const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
 
