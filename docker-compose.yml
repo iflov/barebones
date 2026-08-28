@@ -4,13 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    # 이 compose는 **로컬 개발 환경**이다. 이미지의 기본 CMD(`yarn start:prod`)를 덮어써
+    # 이 compose는 **로컬 개발 환경**이다. 이미지의 기본 CMD(`pnpm start:prod`)를 덮어써
     # watch 모드로 띄우고, 소스를 마운트해서 호스트의 수정이 바로 반영되게 한다.
     #
     # node_modules는 마운트하지 않는다 — 이미지 안에서 설치된 것을 쓴다.
     # 프로젝트 전체를 마운트하면 호스트의 (없거나 다른 플랫폼용) node_modules가
     # 이미지의 것을 덮어써서 기동이 깨진다.
-    command: ['yarn', 'start:dev']
+    command: ['pnpm', 'start:dev']
     volumes:
       - ./src:/app/src
       - ./test:/app/test
