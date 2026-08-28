@@ -1,12 +1,19 @@
 import { Module, type Type } from '@nestjs/common';
-import { TerminusModule } from '@nestjs/terminus';
 
 import { featureFlags } from '../config/feature-flags';
 import { RdbDatabaseModule } from '../infra/rdb/rdb-database.module';
 import { RedisModule } from '../infra/redis/redis.module';
 import { HealthController } from './adapters/in/http/health.controller';
-import { DiskHealthAdapter } from './adapters/out/disk-health.adapter';
-import { MemoryHealthAdapter } from './adapters/out/memory-health.adapter';
+import {
+  DISK_SPACE_PROBE,
+  DiskHealthAdapter,
+  nodeDiskSpaceProbe,
+} from './adapters/out/disk-health.adapter';
+import {
+  MEMORY_USAGE_PROBE,
+  MemoryHealthAdapter,
+  processMemoryUsageProbe,
+} from './adapters/out/memory-health.adapter';
 import { MongodbHealthAdapter } from './adapters/out/mongodb-health.adapter';
 import { RdbHealthAdapter } from './adapters/out/rdb-health.adapter';
 import { RedisHealthAdapter } from './adapters/out/redis-health.adapter';
@@ -37,9 +44,11 @@ if (featureFlags.mongodb) {
  */
 @Module({
   controllers: [HealthController],
-  imports: [TerminusModule, RdbDatabaseModule, RedisModule],
-  exports: [HealthCoordinator, HealthMetricsService, TerminusModule],
+  imports: [RdbDatabaseModule, RedisModule],
+  exports: [HealthCoordinator, HealthMetricsService],
   providers: [
+    { provide: DISK_SPACE_PROBE, useValue: nodeDiskSpaceProbe },
+    { provide: MEMORY_USAGE_PROBE, useValue: processMemoryUsageProbe },
     ...healthAdapterTypes,
     GetHealthQueryHandler,
     HealthCoordinator,
