@@ -139,6 +139,17 @@ export default tseslint.config(
     },
   },
   {
+    ...tseslint.configs.disableTypeChecked,
+    files: ['**/*.{cjs,js,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
     files: ['**/*.spec.ts', '**/*.e2e-spec.ts', 'test/**/*.ts'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',

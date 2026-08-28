@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: build
     restart: unless-stopped
     # 이 compose는 **로컬 개발 환경**이다. 이미지의 기본 CMD(`pnpm start:prod`)를 덮어써
     # watch 모드로 띄우고, 소스를 마운트해서 호스트의 수정이 바로 반영되게 한다.
@@ -123,7 +124,7 @@ services:
       retries: 5
 
   mongodb:
-    image: mongo:8.0
+    image: mongo:8.2
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-app}

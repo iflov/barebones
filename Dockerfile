@@ -29,8 +29,11 @@ RUN corepack enable && corepack prepare pnpm@11.22.0 --activate
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=prod-deps /app/package.json ./package.json
+COPY --from=prod-deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=prod-deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /app/config ./config
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/scripts/nestjs12-require-hook.cjs ./scripts/nestjs12-require-hook.cjs
 
 USER node
 
