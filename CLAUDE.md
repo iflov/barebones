@@ -31,6 +31,9 @@ adapter/in → application command/query → application port → adapter/out
 - application/domain에서 TypeORM, Prisma, Mongoose, Redis, BullMQ 타입을 import하지 않는다.
 - RDB와 MongoDB를 함께 쓸 수 있지만 한 aggregate의 authoritative store는 하나다.
 - 메시지 발행은 `MessageQueuePort`를 사용하고 BullMQ 타입을 호출부로 노출하지 않는다.
+- BullMQ는 기본 messaging composition root다.
+- broker 교체는 연결만이 아니라 delivery, retry, DLQ 정책을 함께 바꾸는 작업이다.
+- 새 broker는 AppModule이 아니라 messaging infrastructure module에서 교체한다.
 
 ## 생성 시 선택
 
