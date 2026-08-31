@@ -11,6 +11,7 @@ import {
   materializeTypeOrmCompose,
   materializeTypeOrmEnv,
   renderActiveScaffold,
+  renderTestCompose,
   selectedTypeOrmDriver,
 } from '../src/config/typeorm-rdb-generator.js';
 
@@ -77,10 +78,9 @@ function withDatabaseUrlCompose(source: string, database: RdbChoice): string {
 }
 
 function materializeTestDatabaseEnv(source: string, database: RdbChoice): string {
-  const port = database === 'postgres' ? 5432 : 3306;
   return source
     .replace(/^process\.env\.DB_TYPE = '.*';$/m, `process.env.DB_TYPE = '${database}';`)
-    .replace(/^process\.env\.DB_PORT \?\?= '.*';$/m, `process.env.DB_PORT ??= '${port}';`)
+    .replace(/^process\.env\.DB_PORT \?\?= '.*';$/m, "process.env.DB_PORT ??= '15432';")
     .replace(
       /^\/\/ E2E는 인메모리 DB 대신.*$/m,
       `// E2E는 인메모리 DB 대신 docker-compose의 실제 ${database}를 사용한다.`,
@@ -298,6 +298,7 @@ function main(): void {
   files['.env.example'] = env;
   files['barebones.config.json'] = `${JSON.stringify(selection, null, 2)}\n`;
   files['docker-compose.yml'] = compose;
+  files['docker-compose.test.yml'] = renderTestCompose(selection.rdb.database);
   files['package.json'] = `${JSON.stringify(packageManifest, null, 2)}\n`;
   files['test/load-test-env.ts'] = materializeTestDatabaseEnv(
     readFileSync('test/load-test-env.ts', 'utf8'),

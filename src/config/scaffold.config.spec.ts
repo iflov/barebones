@@ -44,7 +44,19 @@ function typeOrmPostgresState(): ScaffoldState {
   return {
     activeScaffoldSource: "database: 'postgres', orm: 'typeorm'",
     appModuleSource: 'imports: [RdbDatabaseModule]',
-    composeSource: 'image: postgres:17-alpine',
+    composeSource: `services:
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: \${DOCKER_DB_HOST:-postgres}
+      DB_PORT: \${DB_PORT:-5432}
+  postgres:
+    image: postgres:17-alpine
+volumes: {}
+`,
     dependencies: new Set(['@nestjs/typeorm', 'pg', 'typeorm']),
     devDependencies: new Set(),
     envExampleSource: 'DB_TYPE=postgres',
@@ -53,7 +65,19 @@ function typeOrmPostgresState(): ScaffoldState {
       'src/config/typeorm-data-source.ts',
       'src/infra/rdb/rdb-database.module.ts',
     ]),
+    loadTestEnvSource: "process.env.DB_TYPE = 'postgres';",
+    persistenceE2eSource:
+      "schema: database === 'postgres' ? process.env.DB_SCHEMA : undefined\ntype: database",
     rdbModuleSource: 'TypeOrmModule.forRootAsync({})',
+    testComposeSource: `name: barebones-test
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - \${DB_TEST_HOST_PORT:-15432}:5432
+    tmpfs:
+      - /var/lib/postgresql/data
+`,
   };
 }
 
@@ -95,7 +119,9 @@ describe('scaffold config', () => {
       devDependencies: current.devDependencies,
       envExampleSource: current.envExampleSource,
       files: current.files,
+      loadTestEnvSource: current.loadTestEnvSource,
       rdbModuleSource: current.rdbModuleSource,
+      testComposeSource: current.testComposeSource,
     };
 
     expect(scaffoldConsistencyIssues(config, state)).toContain(
@@ -114,7 +140,9 @@ describe('scaffold config', () => {
       devDependencies: current.devDependencies,
       envExampleSource: current.envExampleSource,
       files: current.files,
+      loadTestEnvSource: current.loadTestEnvSource,
       rdbModuleSource: current.rdbModuleSource,
+      testComposeSource: current.testComposeSource,
     };
 
     expect(scaffoldConsistencyIssues(config, state)).toContain(
@@ -133,7 +161,9 @@ describe('scaffold config', () => {
       devDependencies: current.devDependencies,
       envExampleSource: current.envExampleSource,
       files: current.files,
+      loadTestEnvSource: current.loadTestEnvSource,
       rdbModuleSource: `${current.rdbModuleSource}\nPrismaClient`,
+      testComposeSource: current.testComposeSource,
     };
 
     expect(scaffoldConsistencyIssues(config, state)).toContain(
@@ -149,8 +179,113 @@ describe('scaffold config', () => {
       expect.arrayContaining([
         'missing database driver for typeorm/mysql: mysql2',
         '.env.example DB_TYPE does not match selected database: mysql',
-        'docker-compose.yml does not provide selected database: mysql',
+        'docker-compose.yml RDB does not match selection: expected mysql, found postgres',
       ]),
+    );
+  });
+
+  it('ignores an image marker in a comment and rejects the actual unselected service', () => {
+    const config = parseScaffoldConfig({ rdb: { database: 'postgres', orm: 'typeorm' } });
+    const current = typeOrmPostgresState();
+    const state: ScaffoldState = {
+      activeScaffoldSource: current.activeScaffoldSource,
+      appModuleSource: current.appModuleSource,
+      composeSource: current.composeSource
+        .replace(
+          'postgres:\n    image: postgres:17-alpine',
+          'mysql:\n    # image: postgres:17-alpine\n    image: mysql:8.4',
+        )
+        .replace('      postgres:', '      mysql:'),
+      dependencies: current.dependencies,
+      devDependencies: current.devDependencies,
+      envExampleSource: current.envExampleSource,
+      files: current.files,
+      loadTestEnvSource: current.loadTestEnvSource,
+      rdbModuleSource: current.rdbModuleSource,
+      testComposeSource: current.testComposeSource,
+    };
+
+    expect(scaffoldConsistencyIssues(config, state)).toEqual(
+      expect.arrayContaining([
+        'docker-compose.yml RDB does not match selection: expected postgres, found mysql',
+        'docker-compose.yml contains unselected RDB service: mysql',
+      ]),
+    );
+  });
+
+  it('rejects an unselected database service left beside the selected service', () => {
+    const config = parseScaffoldConfig({ rdb: { database: 'postgres', orm: 'typeorm' } });
+    const current = typeOrmPostgresState();
+    const state: ScaffoldState = {
+      activeScaffoldSource: current.activeScaffoldSource,
+      appModuleSource: current.appModuleSource,
+      composeSource: current.composeSource.replace(
+        '\nvolumes:',
+        '\n  mysql:\n    image: mysql:8.4\nvolumes:',
+      ),
+      dependencies: current.dependencies,
+      devDependencies: current.devDependencies,
+      envExampleSource: current.envExampleSource,
+      files: current.files,
+      loadTestEnvSource: current.loadTestEnvSource,
+      rdbModuleSource: current.rdbModuleSource,
+      testComposeSource: current.testComposeSource,
+    };
+
+    expect(scaffoldConsistencyIssues(config, state)).toContain(
+      'docker-compose.yml contains unselected RDB service: mysql',
+    );
+  });
+
+  it('rejects an unselected ORM profile file left behind', () => {
+    const config = parseScaffoldConfig({ rdb: { database: 'postgres', orm: 'typeorm' } });
+    const current = typeOrmPostgresState();
+    const state: ScaffoldState = {
+      activeScaffoldSource: current.activeScaffoldSource,
+      appModuleSource: current.appModuleSource,
+      composeSource: current.composeSource,
+      dependencies: current.dependencies,
+      devDependencies: current.devDependencies,
+      envExampleSource: current.envExampleSource,
+      files: new Set([...current.files, 'prisma/schema.prisma']),
+      loadTestEnvSource: current.loadTestEnvSource,
+      rdbModuleSource: current.rdbModuleSource,
+      testComposeSource: current.testComposeSource,
+    };
+
+    expect(scaffoldConsistencyIssues(config, state)).toContain(
+      'unselected ORM profile file is still present: prisma/schema.prisma',
+    );
+  });
+
+  it('rejects a test compose database that differs from the selection', () => {
+    const config = parseScaffoldConfig({ rdb: { database: 'mysql', orm: 'typeorm' } });
+    const current = typeOrmPostgresState();
+
+    expect(scaffoldConsistencyIssues(config, current)).toContain(
+      'docker-compose.test.yml RDB does not match selection: expected mysql, found postgres',
+    );
+  });
+
+  it('rejects PostgreSQL-only schema configuration passed to every TypeORM test database', () => {
+    const config = parseScaffoldConfig({ rdb: { database: 'postgres', orm: 'typeorm' } });
+    const current = typeOrmPostgresState();
+    const state: ScaffoldState = {
+      activeScaffoldSource: current.activeScaffoldSource,
+      appModuleSource: current.appModuleSource,
+      composeSource: current.composeSource,
+      dependencies: current.dependencies,
+      devDependencies: current.devDependencies,
+      envExampleSource: current.envExampleSource,
+      files: current.files,
+      loadTestEnvSource: current.loadTestEnvSource,
+      persistenceE2eSource: 'schema: process.env.DB_SCHEMA\ntype: database',
+      rdbModuleSource: current.rdbModuleSource,
+      testComposeSource: current.testComposeSource,
+    };
+
+    expect(scaffoldConsistencyIssues(config, state)).toContain(
+      'TypeORM E2E must only pass DB_SCHEMA to PostgreSQL',
     );
   });
 });

@@ -1,4 +1,3 @@
-import { BullModule } from '@nestjs/bullmq';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -13,7 +12,6 @@ import { validationSchema } from './config/env.validation.js';
 import { featureFlags } from './config/feature-flags.js';
 import { envFilePaths } from './config/load-env.js';
 import { buildPinoConfig } from './config/pino.config.js';
-import { buildBullConnectionOptions } from './config/redis.config.js';
 import { HealthModule } from './health/health.module.js';
 import { MetricsModule } from './infra/metrics/metrics.module.js';
 import { MongoDatabaseModule } from './infra/mongodb/mongodb.module.js';
@@ -72,17 +70,6 @@ const {
     }),
     RdbDatabaseModule,
     ...(mongodbEnabled ? [MongoDatabaseModule] : []),
-    ...(bullmqEnabled
-      ? [
-          BullModule.forRootAsync({
-            inject: [ConfigService],
-            useFactory: (configService: ConfigService) => ({
-              connection: buildBullConnectionOptions(configService),
-              prefix: configService.get<string>('BULLMQ_PREFIX') ?? 'app',
-            }),
-          }),
-        ]
-      : []),
     HealthModule,
     ...(metricsEnabled ? [MetricsModule] : []),
     RedisModule,

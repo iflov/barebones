@@ -6,7 +6,7 @@ import { AppModule } from '../src/app.module.js';
 import { configureHttpApp } from '../src/app.setup.js';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication;
+  let app: INestApplication | undefined;
   let baseUrl: string;
 
   beforeAll(async () => {
@@ -22,7 +22,7 @@ describe('AppController (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await app?.close();
   });
 
   /**
