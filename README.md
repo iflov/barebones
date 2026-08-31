@@ -131,9 +131,14 @@ pnpm check:observability
 pnpm lint
 pnpm typecheck
 pnpm test
-DB_PORT=15432 pnpm test:e2e
+docker compose -f docker-compose.test.yml up -d --wait
+pnpm test:e2e
+docker compose -f docker-compose.test.yml down
 pnpm build
 docker compose config --quiet
+docker compose -f docker-compose.test.yml config --quiet
 ```
 
-실제 E2E는 sql.js 같은 인메모리 대체물이 아니라 Docker RDB를 사용합니다.
+실제 E2E는 sql.js 같은 인메모리 대체물이 아니라 선택된 Docker RDB를 사용합니다. 테스트 전용
+Compose project와 tmpfs가 개발 데이터 및 로컬 개발 Compose lifecycle을 격리하며 기본 호스트 포트는
+15432입니다.

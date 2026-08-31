@@ -14,7 +14,9 @@ pnpm check:observability
 pnpm lint
 pnpm typecheck
 pnpm test
-DB_PORT=15432 pnpm test:e2e
+docker compose -f docker-compose.test.yml up -d --wait
+pnpm test:e2e
+docker compose -f docker-compose.test.yml down
 pnpm build
 ```
 

@@ -62,7 +62,12 @@ function main(): void {
     devDependencies: dependencyNames(packageManifest.devDependencies),
     envExampleSource: readFileSync('.env.example', 'utf8'),
     files: new Set(candidateFiles.filter((path) => existsSync(path))),
+    loadTestEnvSource: readFileSync('test/load-test-env.ts', 'utf8'),
+    persistenceE2eSource: existsSync('test/persistence.e2e-spec.ts')
+      ? readFileSync('test/persistence.e2e-spec.ts', 'utf8')
+      : undefined,
     rdbModuleSource: readFileSync('src/infra/rdb/rdb-database.module.ts', 'utf8'),
+    testComposeSource: readFileSync('docker-compose.test.yml', 'utf8'),
   };
   const issues = scaffoldConsistencyIssues(config, state);
   issues.push(

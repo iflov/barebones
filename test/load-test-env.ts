@@ -23,11 +23,11 @@ process.env.MONGODB_USERNAME ??= 'app';
 process.env.MONGODB_PASSWORD ??= 'app';
 process.env.MONGODB_DATABASE ??= 'app';
 process.env.MONGODB_AUTH_SOURCE ??= 'admin';
-// E2E는 인메모리 DB 대신 docker-compose의 실제 PostgreSQL을 사용한다.
-// compose 안에서는 이미 DB_HOST=postgres가 주입되고, 호스트 실행은 localhost를 쓴다.
+// E2E는 인메모리 DB 대신 docker-compose.test.yml의 선택된 실제 RDB를 사용한다.
+// 테스트 Compose는 15432를 publish하고, 호스트 실행은 localhost를 쓴다.
 process.env.DB_TYPE = 'postgres';
 process.env.DB_HOST ??= 'localhost';
-process.env.DB_PORT ??= '5432';
+process.env.DB_PORT ??= '15432';
 process.env.DB_USERNAME ??= 'app';
 process.env.DB_PASSWORD ??= 'app';
 process.env.DB_DATABASE ??= 'app';

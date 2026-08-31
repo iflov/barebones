@@ -1,7 +1,12 @@
+import { readFileSync } from 'node:fs';
+
+import { parse } from 'yaml';
+
 import {
   materializeTypeOrmCompose,
   materializeTypeOrmEnv,
   renderActiveScaffold,
+  renderTestCompose,
   selectedTypeOrmDriver,
 } from './typeorm-rdb-generator.js';
 
@@ -71,7 +76,63 @@ describe('TypeORM RDB generator', () => {
 
   it('refuses an unknown compose shape instead of partially rewriting it', () => {
     expect(() => materializeTypeOrmCompose('services: {}', 'postgres')).toThrow(
-      'RDB service block was not found',
+      'must contain exactly one primary RDB service',
+    );
+  });
+
+  it('preserves every existing comment while materializing the checked-in compose file', () => {
+    const source = readFileSync('docker-compose.yml', 'utf8');
+    const comments = source
+      .split('\n')
+      .filter((line) => line.includes('#'))
+      .map((line) => line.trim());
+
+    expect(comments).toHaveLength(13);
+    const rendered = materializeTypeOrmCompose(source, 'mysql');
+    expect(comments.filter((comment) => !rendered.includes(comment))).toEqual([]);
+  });
+
+  it('preserves a service inserted between the RDB and Redis', () => {
+    const withPgAdmin = compose.replace(
+      '\n  redis:',
+      '\n  pgadmin:\n    image: dpage/pgadmin4:9.8\n\n  redis:',
+    );
+
+    const rendered = materializeTypeOrmCompose(withPgAdmin, 'mysql');
+    expect(rendered).toContain('pgadmin:');
+    expect(rendered).toContain('image: dpage/pgadmin4:9.8');
+  });
+
+  it('preserves top-level volumes when the RDB is the final service', () => {
+    const rdbBlock = compose.match(/\n {2}postgres:\n[\s\S]*?(?=\n {2}redis:)/)?.[0];
+    expect(rdbBlock).toBeDefined();
+    const rdbLast = compose
+      .replace(rdbBlock ?? '', '')
+      .replace('\nvolumes:', `${rdbBlock}\nvolumes:`);
+
+    const rendered = materializeTypeOrmCompose(rdbLast, 'mysql');
+    expect(rendered).toContain('\nvolumes:\n');
+    expect(rendered).toContain('mysql-data:');
+  });
+
+  it.each([
+    ['postgres', 'postgres:17-alpine', 5432],
+    ['mysql', 'mysql:8.4', 3306],
+    ['mariadb', 'mariadb:lts', 3306],
+  ] as const)('renders an isolated %s test database', (database, image, containerPort) => {
+    const rendered = parse(renderTestCompose(database)) as {
+      name: string;
+      services: Record<string, { image: string; ports: string[]; tmpfs: string[] }>;
+    };
+
+    expect(rendered.name).toBe('barebones-test');
+    expect(rendered.services[database]).toMatchObject({
+      image,
+      ports: [`\${DB_TEST_HOST_PORT:-15432}:${containerPort}`],
+    });
+    expect(rendered.services[database].tmpfs).toHaveLength(1);
+    expect(renderTestCompose(database)).toContain(
+      `- '\${DB_TEST_HOST_PORT:-15432}:${containerPort}'`,
     );
   });
 });

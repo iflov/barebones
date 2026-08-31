@@ -34,7 +34,7 @@ class ProbeRow {
   @PrimaryGeneratedColumn('increment')
   id!: number;
 
-  @Column({ type: 'text', unique: true })
+  @Column({ length: 255, type: 'varchar', unique: true })
   name!: string;
 
   @Column({ nullable: true, type: 'text' })
@@ -46,6 +46,19 @@ class ProbeRow {
 }
 
 const PROBE_REPOSITORY = createRepositoryToken('PROBE_REPOSITORY', ProbeRow);
+
+type TestDatabase = 'mariadb' | 'mysql' | 'postgres';
+
+function testDatabase(): TestDatabase {
+  switch (process.env.DB_TYPE) {
+    case 'mariadb':
+    case 'mysql':
+    case 'postgres':
+      return process.env.DB_TYPE;
+    default:
+      throw new Error(`Unsupported test database: ${process.env.DB_TYPE ?? 'unset'}`);
+  }
+}
 
 /**
  * 도메인 Repository의 형태.
@@ -125,13 +138,14 @@ class ProbeModule {}
 
 describe('persistence port wiring (e2e)', () => {
   let repository: ProbeRepository;
-  let close: () => Promise<void>;
+  let close: (() => Promise<void>) | undefined;
 
   beforeAll(async () => {
+    const database = testDatabase();
     const moduleRef = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true, validationSchema }),
-        // docker-compose의 실제 PostgreSQL에 픽스처 엔티티를 올린다.
+        // docker-compose.test.yml의 선택된 실제 RDB에 픽스처 엔티티를 올린다.
         // 어댑터의 SQL 번역과 드라이버 에러 변환을 운영 기본 드라이버에서 검증한다.
         TypeOrmModule.forRoot({
           database: process.env.DB_DATABASE,
@@ -140,9 +154,9 @@ describe('persistence port wiring (e2e)', () => {
           logging: false,
           password: process.env.DB_PASSWORD,
           port: Number(process.env.DB_PORT),
-          schema: process.env.DB_SCHEMA,
+          schema: database === 'postgres' ? process.env.DB_SCHEMA : undefined,
           synchronize: true,
-          type: 'postgres',
+          type: database,
           username: process.env.DB_USERNAME,
         }),
         ProbeModule,
@@ -155,7 +169,7 @@ describe('persistence port wiring (e2e)', () => {
   });
 
   afterAll(async () => {
-    await close();
+    await close?.();
   });
 
   beforeEach(async () => {
