@@ -1,5 +1,6 @@
+# subnet group은 "DB가 들어갈 subnet 목록"일 뿐이라 foundation이다.
 resource "aws_db_subnet_group" "this" {
-  name       = local.name
+  name       = local.foundation_name
   subnet_ids = aws_subnet.private[*].id
 }
 
@@ -10,7 +11,7 @@ resource "aws_db_instance" "this" {
   db_subnet_group_name        = aws_db_subnet_group.this.name
   deletion_protection         = var.environment == "prod"
   engine                      = var.db_engine
-  identifier                  = local.name
+  identifier                  = local.service_name
   instance_class              = var.db_instance_class
   manage_master_user_password = true
   multi_az                    = var.environment == "prod"
@@ -25,7 +26,7 @@ resource "aws_db_instance" "this" {
 resource "aws_elasticache_subnet_group" "this" {
   count = var.enable_redis ? 1 : 0
 
-  name       = local.name
+  name       = local.foundation_name
   subnet_ids = aws_subnet.private[*].id
 }
 
@@ -33,12 +34,12 @@ resource "aws_elasticache_replication_group" "this" {
   count = var.enable_redis ? 1 : 0
 
   at_rest_encryption_enabled = true
-  description                = "${local.name} cache and BullMQ backend"
+  description                = "${local.service_name} cache and BullMQ backend"
   engine                     = "valkey"
   node_type                  = var.redis_node_type
   num_cache_clusters         = var.environment == "prod" ? 2 : 1
   port                       = 6379
-  replication_group_id       = local.name
+  replication_group_id       = local.service_name
   security_group_ids         = [aws_security_group.data.id]
   subnet_group_name          = aws_elasticache_subnet_group.this[0].name
 }
@@ -46,14 +47,14 @@ resource "aws_elasticache_replication_group" "this" {
 resource "aws_sqs_queue" "dead_letter" {
   count = var.enable_sqs ? 1 : 0
 
-  name                      = "${local.name}-dlq"
+  name                      = "${local.service_name}-dlq"
   message_retention_seconds = 1209600
 }
 
 resource "aws_sqs_queue" "messages" {
   count = var.enable_sqs ? 1 : 0
 
-  name                       = "${local.name}-messages"
+  name                       = "${local.service_name}-messages"
   visibility_timeout_seconds = 60
 
   redrive_policy = jsonencode({

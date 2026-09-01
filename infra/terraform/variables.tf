@@ -16,6 +16,23 @@ variable "environment" {
   default     = "dev"
 }
 
+# 이름 축이 둘로 갈린다. `project_name`-`environment`가 **foundation** 이름이고
+# (VPC, ECS 클러스터, ALB — 여러 서비스가 나눠 쓴다), 여기에 `service_name`을
+# 붙인 것이 **service** 이름이다(task definition, target group, RDS).
+#
+# 이전에는 `local.name` 하나가 VPC부터 target group까지 전부의 이름이었다.
+# 서비스가 둘이면 ECS 클러스터 이름부터 충돌한다.
+variable "service_name" {
+  description = "Service identity within the foundation (e.g. api, web, worker)"
+  type        = string
+  default     = "api"
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]*[a-z0-9]$", var.service_name))
+    error_message = "service_name must be lowercase alphanumeric with hyphens, starting with a letter."
+  }
+}
+
 variable "container_image" {
   description = "Deployable application image URI"
   type        = string
@@ -125,6 +142,23 @@ variable "enable_sqs" {
 variable "redis_node_type" {
   type    = string
   default = "cache.t4g.micro"
+}
+
+# Redis logical database 번호. 데이터 플레인이 서비스별이면 0으로 두면 된다.
+# Valkey 하나를 여러 서비스가 나눠 쓰게 되면 여기서 갈라야 한다 — 단 번호는 16개뿐이고
+# key prefix와 달리 권한 경계도 아니다. 진짜 격리는 ElastiCache RBAC인데, 그건
+# transit encryption과 앱의 username/TLS 지원을 함께 요구한다. 지금 앱의
+# `buildRedisOptions`는 password만 받는다.
+# > src/config/redis.config.ts:20-32
+variable "redis_db" {
+  description = "Redis logical database index for this service"
+  type        = number
+  default     = 0
+
+  validation {
+    condition     = var.redis_db >= 0 && var.redis_db <= 15 && floor(var.redis_db) == var.redis_db
+    error_message = "redis_db must be an integer between 0 and 15."
+  }
 }
 
 variable "mongodb_secret_arn" {

@@ -4,6 +4,10 @@
 > `infra/terraform`을 앱 저장소 밖으로 뺄 것인가. 3라운드 교차검증 결과와 내린 결정.
 > 조사 2026-08-31 · 결정 2026-09-01
 >
+> **⚠ 아래 "추천과 그 근거"는 2026-09-01에 폐기됐다.** 그 추천은 "terraform 사본 하나당
+> 소비자 하나"를 전제했는데, 사용자가 그 전제가 틀렸다고 정정했다 — frontend와 다른
+> 서비스가 **같은 인프라를 나눠 쓴다.** 갱신된 판단은 아래 "2026-09-01 재검토"에 있다.
+>
 > **결정: 모델 B — 파생 프로젝트는 버전 모듈을 참조한다.** 따라서 별도 repo가 최종 목적지다.
 > 다만 아래 "추천과 그 근거"의 순서 제약은 그대로 유효해서, 지금 옮기지 않는다 —
 > 모듈 인터페이스는 한 번 apply해서 무엇이 입력이고 무엇이 프로젝트별인지 드러난 뒤에 정한다.
@@ -91,6 +95,134 @@ Deployment/Service/Ingress까지 붙어 2~4배로 추정된다.
 한 번도 apply된 적이 없으므로 이 terraform이 실제로 뜨는지, 뜨면 앱이 정상 부팅하는지
 전부 미검증이다. EKS profile의 실제 줄 수 배수도 endpoint·node model·ingress 결정
 전에는 주장할 수 없다.
+
+## 2026-09-01 재검토 — 소비자가 여럿이라는 정정
+
+사용자가 문서의 전제를 정정했다.
+
+> frontend 혹은 다른 서비스의 인프라도 다 이 프로젝트에 종속되고 프로젝트별로
+> 나눠져 있지 않기 때문에 이걸 나누는 비용이 발생한다
+
+인프라의 소비자가 처음부터 여러 개다. 그러면 "독립 app 소비자 수 ≥ 2"라는 이 문서의
+분리 신호가 **이미 켜져 있었다.** in-tree 유지 추천은 근거가 사라졌다.
+
+Claude와 Codex(orca 워크트리 `infra-seam-audit`, gpt-5.6-terra high)가 2라운드
+교차검증했다. 읽기 전용, 코드 변경 없음.
+
+### 저장소 경계는 state 경계가 아니다 — Claude 정정됨
+
+Claude가 "저장소만 옮기면 frontend service apply가 backend RDS와 같은 state를 건드려
+지금보다 나빠진다"고 했는데 틀렸다. **state 경계는 backend key가 정한다.** 저장소를
+옮겨도 key가 같으면 같은 state이고, 저장소를 안 옮겨도 key를 나누면 state는 나뉜다.
+저장소 분리는 state 분리의 필요조건도 충분조건도 아니다.
+
+### 모델 B는 두 가지로 갈린다
+
+|                      | B1 — 모듈 라이브러리                   | B2 — 공유 환경               |
+| -------------------- | -------------------------------------- | ---------------------------- |
+| infra repo가 갖는 것 | 재사용 **모듈**. 버전 태그             | 실제로 도는 **리소스**       |
+| 각 프로젝트          | 자기 root에서 인스턴스화               | 그 환경에 자기 서비스를 등록 |
+| 결과                 | **프로젝트마다 VPC·RDS가 따로 생긴다** | 하나를 나눠 쓴다             |
+
+이 문서가 말한 B(`source = "git::…?ref=v1.2"`)는 **B1**이다. git `ref`는 소스 버전을
+고를 뿐 이미 만들어진 VPC를 가리키지 않으므로 B1은 공유를 만들지 않는다. 사용자의
+제약은 **B2**를 가리킨다. 최종 형태는 혼합이다 — foundation은 B2(live), service는
+B1(버전 모듈)이고 각 앱 저장소가 그것을 참조한다.
+
+### 공유 비용은 하나가 아니라 셋이고 복잡도가 다르다
+
+AWS 공식 Price List, `ap-northeast-2`, 730h, storage·LCU 제외:
+
+| 자원                        |         월 | 공유하려면 치를 값                            |
+| --------------------------- | ---------: | --------------------------------------------- |
+| VPC·subnet·IGW·ECS 클러스터 |         $0 | 없음                                          |
+| ALB                         |     $16.43 | listener rule priority 거버넌스               |
+| Valkey `cache.t4g.micro`    |     $14.02 | prefix 주입 + ACL/TLS — **앱 코드 변경 필요** |
+| RDS `db.t4g.micro`          |     $18.25 | 별도 SQL provider + **VPC 안 특권 runner**    |
+| 합계                        | **$48.69** |                                               |
+
+### 공유 RDS는 config 선택이 아니라 운영 약속이다
+
+`hashicorp/aws`만으로 공유 RDS의 최소권한을 만들 수 없다. `CREATE DATABASE`/`CREATE ROLE`/
+`GRANT`는 SQL catalog 작업이라 `cyrilgdn/postgresql` 같은 provider가 필요하고, 그
+provider는 RDS에 TCP로 붙어야 한다. RDS는 `publicly_accessible = false`(`data.tf:18`)에
+private subnet이고 data SG는 app SG만 허용한다 — GitHub 호스티드 runner는 닿지 못한다.
+따라서 VPC 안에서 도는 특권 실행 환경(CodeBuild VPC / self-hosted runner / bastion)과
+DB-admin SG를 새로 만들어야 한다. $18.25/월을 아끼려고 **영구적인 특권 CI 표면**을
+추가하는 거래다.
+
+그걸 안 하면 대안은 지금 구조 그대로 — 모든 서비스에 master credential 배포다
+(`data.tf:15` `manage_master_user_password = true` → `compute.tf:37`,`:103`).
+한 서비스가 뚫리면 전부 뚫린다.
+
+### 공유 Redis는 앱에 축은 있는데 인증이 없다
+
+앱은 `REDIS_DB`·`REDIS_KEY_PREFIX`·`BULLMQ_PREFIX`를 이미 갖고 있다
+(`env.validation.ts:85-89`, `cache.config.ts:29`, `redis.config.ts:29`). terraform이
+안 넘겼을 뿐이고 이건 세 줄로 고쳐진다. 하지만 prefix는 이름 구분이지 권한 경계가
+아니다. 진짜 격리(ElastiCache RBAC)는 username과 transit encryption을 요구하는데
+`buildRedisOptions`(`redis.config.ts:20-32`)는 password만 받는다 — **앱 코드 변경이
+선행**이다.
+
+### 결정 (2026-09-01)
+
+**공유의 손익비가 자원마다 달라 한 덩어리로 결정하지 않는다.**
+
+```text
+foundation (공유)  VPC, subnet, IGW, route table, ECS 클러스터, ALB + listener, ALB SG
+service (서비스별)  RDS, Valkey, task def, target group, listener rule, SG, IAM, SQS
+```
+
+$32.27/월은 VPC 안 특권 CI 표면보다 싸다. 그리고 사용자가 말한 통증("인프라가 이
+프로젝트에 종속된다")은 **공짜인 것들**(VPC·subnet·ECS 클러스터)을 공유하는 것만으로
+대부분 해소된다. RDS 공유는 그 통증과 거의 무관하다.
+
+**미결정:** ALB 라우팅이 host-based냐 path-based냐. rule priority는 listener 안에서
+유일해야 하고(중복 시 `PriorityInUse`) 여러 root가 각자 번호를 고르는 구조는 성립하지
+않으므로, 대역 배정 규약이 함께 정해져야 한다.
+
+### 이 재검토로 실제로 한 것
+
+무후회 작업 — 라우팅을 뭘 고르든, 데이터를 공유하든 안 하든 필요한 것들:
+
+1. 이름 축 분리 (`local.foundation_name` / `local.service_name`, `var.service_name`).
+   이전에는 `local.name` 하나가 VPC부터 target group까지 전부의 이름이라 서비스 둘이면 충돌했다.
+2. `outputs.tf`에 foundation 계약 추가 — VPC ID, subnet IDs, ALB SG ID, listener ARN,
+   cluster ARN, DB subnet group. 이전엔 하나도 없었다.
+3. inline `ingress`/`egress` → `aws_vpc_security_group_*_rule`. inline은 authoritative라
+   층이 갈리면 foundation apply가 service의 rule을 지운다.
+4. `REDIS_DB`·`REDIS_KEY_PREFIX`·`BULLMQ_PREFIX` 주입 (service name에서 유도).
+5. `backend.hcl.example`에 foundation/service key 규약.
+6. ALB·target group 이름의 `substr(..., 0, 32)` 조용한 절단을 `lifecycle.precondition`으로.
+   이름이 긴 서비스 둘이 같은 32자로 잘리는 사고가 apply 시점에야 드러났다.
+7. 죽은 `local.redis_on` 제거.
+
+### 검증 — 처음으로 plan이 통과했다
+
+이 문서가 "한 번도 apply된 적이 없어 실제로 뜨는지 미검증"이라고 적은 것 중 일부가
+풀렸다. 실제 AWS 대상으로:
+
+```text
+Plan: 33 to add, 0 to change, 0 to destroy.
+```
+
+`enable_sqs = false`가 기본이라 SQS/DLQ/IAM 정책은 계획에 없다. 분리된 SG rule 6개
+(`aws_vpc_security_group_ingress_rule` 4 + `egress_rule` 2)가 정상 계획된다.
+**apply는 하지 않았다** — plan 통과는 "AWS가 이 요청을 받아들일 것 같다"이지
+"앱이 부팅한다"가 아니다. task 기동, health check 통과, env 계약 정합은 여전히 미검증이다.
+
+validation과 precondition은 실제로 발화한다:
+
+| 입력                                                              | 결과                                                          |
+| ----------------------------------------------------------------- | ------------------------------------------------------------- |
+| `service_name=API`                                                | `service_name must be lowercase alphanumeric with hyphens...` |
+| `redis_db=16`                                                     | `redis_db must be an integer between 0 and 15.`               |
+| `project_name=verylongprojectnamehere` + `environment=production` | `ALB name '...' exceeds 32 characters` (precondition)         |
+| `service_name=averyveryverylongservicename`                       | `Target group name '...' exceeds 32` (precondition)           |
+
+마지막 둘이 이전에는 `substr(..., 0, 32)`로 조용히 잘렸다.
+
+---
 
 ## 분리 여부와 무관하게 고쳐야 하는 결함
 
