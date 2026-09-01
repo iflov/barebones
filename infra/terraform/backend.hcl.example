@@ -1,5 +1,23 @@
-bucket       = "replace-with-terraform-state-bucket"
-key          = "barebones/dev/terraform.tfstate"
-region       = "ap-northeast-2"
-encrypt      = true
+# 이 파일은 커밋하지 않는다. `backend.hcl`로 복사해 실제 값을 채운다.
+
+bucket = "replace-with-terraform-state-bucket"
+region = "ap-northeast-2"
+
+# key 규약 — foundation과 service를 **처음부터 다른 key로** 둔다.
+#
+#   <project>/<environment>/foundation/terraform.tfstate
+#   <project>/<environment>/service/<service-name>/terraform.tfstate
+#
+# 지금은 한 root라 key도 하나지만, 이 규약을 지금 정해두는 이유는 state 경계가
+# 저장소가 아니라 **backend key**로 정해지기 때문이다. 저장소를 옮겨도 key가 같으면
+# 같은 state이고, 저장소를 안 옮겨도 key를 나누면 state는 나뉜다.
+#
+# key를 나누면 apply role도 key 단위로 자를 수 있다 — service role에는 자기
+# key의 GetObject/PutObject와 lockfile 권한만 준다. foundation state에는 RDS
+# master secret ARN과 IAM 정책이 들어 있으므로, service가 그걸 읽을 이유가 없다.
+key = "barebones/dev/service/api/terraform.tfstate"
+
+encrypt = true
+
+# S3 native locking (Terraform 1.10+). DynamoDB 테이블이 필요 없다.
 use_lockfile = true

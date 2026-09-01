@@ -1,14 +1,15 @@
 resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/${local.name}"
+  name              = "/ecs/${local.service_name}"
   retention_in_days = var.environment == "prod" ? 30 : 7
 }
 
+# 클러스터는 foundation이다. 여러 서비스가 같은 클러스터에 뜬다.
 resource "aws_ecs_cluster" "this" {
-  name = local.name
+  name = local.foundation_name
 }
 
 resource "aws_iam_role" "ecs_execution" {
-  name = "${local.name}-ecs-execution"
+  name = "${local.service_name}-ecs-execution"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -40,7 +41,7 @@ resource "aws_iam_role_policy" "ecs_secrets" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  name = "${local.name}-ecs-task"
+  name = "${local.service_name}-ecs-task"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -88,6 +89,13 @@ locals {
     { name = "REDIS_ENABLED", value = tostring(var.enable_redis) },
     { name = "REDIS_HOST", value = var.enable_redis ? aws_elasticache_replication_group.this[0].primary_endpoint_address : "localhost" },
     { name = "BULLMQ_ENABLED", value = tostring(var.enable_redis) },
+    # 앱은 이 세 축을 이미 갖고 있는데 terraform이 넘기지 않았다. 기본값이
+    # cache `app:` / BullMQ `app` / db 0이라 서비스 둘이 같은 Valkey를 쓰면
+    # 그대로 충돌한다. 서비스 이름에서 유도해 그 사고를 없앤다.
+    # > src/config/env.validation.ts:85-89 · cache.config.ts:29 · redis.config.ts:29
+    { name = "REDIS_DB", value = tostring(var.redis_db) },
+    { name = "REDIS_KEY_PREFIX", value = "${var.service_name}:" },
+    { name = "BULLMQ_PREFIX", value = var.service_name },
     { name = "MONGODB_ENABLED", value = tostring(local.mongodb_on) },
     { name = "PROMETHEUS_ENABLED", value = "true" },
     { name = "CORS_ORIGINS", value = join(",", var.cors_origins) }
@@ -110,7 +118,7 @@ locals {
 }
 
 resource "aws_ecs_task_definition" "app" {
-  family                   = local.name
+  family                   = local.service_name
   cpu                      = 512
   memory                   = 1024
   network_mode             = "awsvpc"
@@ -136,16 +144,26 @@ resource "aws_ecs_task_definition" "app" {
   }])
 }
 
+# ALB는 foundation이다. 여러 서비스가 listener rule로 나눠 쓴다.
 resource "aws_lb" "this" {
-  name               = substr(local.name, 0, 32)
+  name               = local.foundation_name
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
   subnets            = aws_subnet.public[*].id
+
+  # 이전에는 `substr(..., 0, 32)`로 **조용히 잘랐다.** 이름이 긴 서비스 둘이
+  # 같은 32자로 잘리면 이름이 충돌하는데, 그 사실이 apply 시점에야 드러난다.
+  lifecycle {
+    precondition {
+      condition     = length(local.foundation_name) <= 32
+      error_message = "ALB name '${local.foundation_name}' exceeds 32 characters. Shorten project_name or environment."
+    }
+  }
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = substr("${local.name}-app", 0, 32)
+  name        = local.service_name
   port        = var.container_port
   protocol    = "HTTP"
   target_type = "ip"
@@ -156,6 +174,13 @@ resource "aws_lb_target_group" "app" {
     interval            = 30
     path                = "/v1/system/health"
     unhealthy_threshold = 3
+  }
+
+  lifecycle {
+    precondition {
+      condition     = length(local.service_name) <= 32
+      error_message = "Target group name '${local.service_name}' exceeds 32 characters. Shorten project_name, environment, or service_name."
+    }
   }
 }
 
@@ -171,7 +196,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_ecs_service" "app" {
-  name            = local.name
+  name            = local.service_name
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = var.desired_count
