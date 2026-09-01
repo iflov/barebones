@@ -9,6 +9,40 @@ import tseslint from 'typescript-eslint';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 
+const externalIoImports = [
+  '@keyv/redis',
+  '@mikro-orm/core',
+  '@mikro-orm/nestjs',
+  '@nestjs/bullmq',
+  '@nestjs/cache-manager',
+  '@nestjs/mongoose',
+  '@nestjs/platform-express',
+  '@nestjs/swagger',
+  '@nestjs/typeorm',
+  '@prisma/client',
+  'axios',
+  'bullmq',
+  'cache-manager',
+  'drizzle-orm',
+  'express',
+  'ioredis',
+  'mongoose',
+  'node:child_process',
+  'node:crypto',
+  'node:fs',
+  'node:fs/promises',
+  'node:http',
+  'node:https',
+  'node:net',
+  'node:tls',
+  'prom-client',
+  'typeorm',
+].map((name) => ({
+  message:
+    'architecture: application/domain은 외부 I/O 구현을 import하지 않는다. capability-owned port를 두고 adapter에서 이 package를 사용할 것.',
+  name,
+}));
+
 export default tseslint.config(
   {
     ignores: [
@@ -77,9 +111,10 @@ export default tseslint.config(
   {
     // constitution A-1-R / A-1-P — TypeORM이 존재할 수 있는 곳을 제한한다.
     //
-    // 도메인 코드는 `IRepository<T>`(src/common/persistence/repository.port.ts)만 본다.
-    // TypeORM은 어댑터·연결 옵션·마이그레이션 세 곳에만 있고, 그래서 ORM을 갈아탈 때
-    // 새로 쓸 파일이 어댑터 하나로 고정된다. 문서만으로는 이게 지켜지지 않으니 빌드로 내린다.
+    // Feature application은 capability-owned port만 본다. Feature persistence adapter는 필요하면
+    // `IRepository<T>`(src/common/persistence/repository.port.ts)를 내부 구현 기반으로 조합한다.
+    // TypeORM query surface는 공용 adapter·연결 옵션·마이그레이션에만 있고, ORM을 갈아탈 때
+    // application interface가 따라 바뀌지 않는다. 문서만으로는 지켜지지 않으니 lint로 내린다.
     //
     // ⚠ 이 룰은 **import 문만** 본다. TypeScript는 구조적 타입이라
     // 어떤 Repository가 `findOne(options: FindOneOptions<T>)`를 노출하면 호출부는
@@ -106,7 +141,7 @@ export default tseslint.config(
               name: '@nestjs/typeorm',
               importNames: ['InjectRepository', 'getRepositoryToken'],
               message:
-                'constitution A-1-P: TypeORM Repository는 src/common/persistence/ 안에서만 주입받는다. 도메인 모듈은 provideRepositoryPort()로 IRepository<T>를 등록하고 그것을 주입받을 것.',
+                'architecture: TypeORM Repository는 src/common/persistence/ 안에서만 주입받는다. feature module은 provideRepositoryPort()로 내부 adapter를 조립하고 application에는 capability-owned port만 제공할 것.',
             },
             {
               name: 'typeorm',
@@ -131,7 +166,50 @@ export default tseslint.config(
                 'UpdateResult',
               ],
               message:
-                'constitution A-1-P: 쿼리와 TypeORM 타입은 src/common/persistence/의 어댑터 안에 둔다. 도메인 Repository는 IRepository<T>의 FindCriteria만 쓸 것.',
+                'architecture: query와 TypeORM 타입은 src/common/persistence/의 adapter 안에 둔다. feature adapter가 필요하면 IRepository<T>를 내부에서 조합하고 application에는 이름 있는 port만 제공할 것.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // ARCHITECTURE.md — application/domain은 port 안쪽이며 concrete adapter를 선택하지 않는다.
+    files: ['src/**/application/**/*.ts', 'src/**/domain/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: externalIoImports,
+          patterns: [
+            {
+              group: ['**/adapters/**', '**/infra/**'],
+              message:
+                'architecture: application/domain에서 adapter나 infra를 역방향 import하지 않는다. 필요한 외부 행위를 port로 선언할 것.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Port는 Nest DI/CQRS까지 모르는 framework-neutral application interface다.
+    files: ['src/**/application/ports/**/*.ts', 'src/**/domain/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          paths: externalIoImports,
+          patterns: [
+            {
+              group: ['@nestjs/*'],
+              message:
+                'architecture: domain과 application port는 Nest framework를 import하지 않는다.',
+            },
+            {
+              group: ['**/adapters/**', '**/infra/**'],
+              message:
+                'architecture: domain과 application port는 adapter나 infra를 import하지 않는다.',
             },
           ],
         },

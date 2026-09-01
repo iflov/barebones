@@ -74,6 +74,8 @@ pnpm scaffold:select --orm=drizzle --database=mariadb --apply
 
 ## 아키텍처
 
+전체 규칙과 새 capability 작성 기준은 [ARCHITECTURE.md](./ARCHITECTURE.md)가 단일 진실 원천입니다.
+
 ```text
 HTTP / CLI
   → Controller / Command
@@ -86,7 +88,10 @@ HTTP / CLI
 CQRS-lite 규칙:
 
 - create/update/delete는 CommandHandler와 쓰기 포트를 사용합니다.
-- 복잡한 조회는 이름 있는 QueryPort를 사용합니다.
+- read는 QueryHandler를 사용하고 외부 I/O가 있으면 이름 있는 QueryPort를 사용합니다.
+- 외부 I/O port는 구현체가 하나여도 사용하는 capability가 소유합니다.
+- Handler가 use case이므로 전달만 하는 별도 UseCase 계층을 겹치지 않습니다.
+- ORM model은 outbound adapter가 소유하며 별도 Mapper 클래스는 mapping이 복잡해질 때만 만듭니다.
 - 단순 기능에 별도 read model이나 event sourcing을 강제하지 않습니다.
 - 한 aggregate의 authoritative store는 하나입니다. RDB와 MongoDB 동시 쓰기는 기본값이 아닙니다.
 

@@ -22,6 +22,9 @@ pnpm build
 
 ## 경계
 
+새 capability, 외부 I/O, persistence model, module communication을 추가하거나 바꿀 때
+[`ARCHITECTURE.md`](./ARCHITECTURE.md)를 먼저 읽는다. 이 절은 항상 필요한 실행 요약만 둔다.
+
 ```text
 adapter/in → application command/query → application port → adapter/out
 ```
@@ -29,8 +32,10 @@ adapter/in → application command/query → application port → adapter/out
 - Controller는 HTTP 상태와 DTO 변환만 담당한다.
 - CommandHandler는 상태 변경 사용 사례를 실행한다.
 - QueryHandler는 조회 사용 사례를 실행한다.
+- Handler가 use case다. 전달만 하는 별도 UseCase 계층을 겹쳐 만들지 않는다.
 - HTTP, CLI, metrics가 같은 판단을 해야 하면 application coordinator를 공유한다.
 - application/domain에서 TypeORM, Prisma, Mongoose, Redis, BullMQ 타입을 import하지 않는다.
+- application이 외부 I/O를 사용하면 구현체 수와 관계없이 capability가 소유한 이름 있는 port를 둔다.
 - RDB와 MongoDB를 함께 쓸 수 있지만 한 aggregate의 authoritative store는 하나다.
 - 메시지 발행은 `MessageQueuePort`를 사용하고 BullMQ 타입을 호출부로 노출하지 않는다.
 - BullMQ는 기본 messaging composition root다.
@@ -105,7 +110,7 @@ optionalDependencies로 싣는다.
 ## CQRS-lite
 
 - create/update/delete: Command + CommandHandler + 이름 있는 write port
-- read: Query + QueryHandler + 이름 있는 query port
+- read: Query + QueryHandler; 외부 I/O가 있으면 이름 있는 query port
 - 범용 CRUD repository를 도메인 API로 노출하지 않는다.
 - event sourcing, 별도 read database, eventual consistency는 제품 요구가 있을 때만 추가한다.
 
