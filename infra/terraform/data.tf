@@ -44,16 +44,20 @@ resource "aws_elasticache_replication_group" "this" {
 }
 
 resource "aws_sqs_queue" "dead_letter" {
+  count = var.enable_sqs ? 1 : 0
+
   name                      = "${local.name}-dlq"
   message_retention_seconds = 1209600
 }
 
 resource "aws_sqs_queue" "messages" {
+  count = var.enable_sqs ? 1 : 0
+
   name                       = "${local.name}-messages"
   visibility_timeout_seconds = 60
 
   redrive_policy = jsonencode({
-    deadLetterTargetArn = aws_sqs_queue.dead_letter.arn
+    deadLetterTargetArn = aws_sqs_queue.dead_letter[0].arn
     maxReceiveCount     = 5
   })
 }

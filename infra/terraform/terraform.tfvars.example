@@ -4,5 +4,19 @@ environment     = "dev"
 container_image = "123456789012.dkr.ecr.ap-northeast-2.amazonaws.com/barebones:latest"
 db_engine       = "postgres"
 
+# 필수. 기본값이 없다 — 브라우저가 보내는 Origin과 정확히 일치해야 하고
+# 스킴을 포함해야 한다. production에서 "*"는 앱이 부팅을 거부한다.
+cors_origins = ["https://app.example.com"]
+
+# 신뢰할 프록시 홉 수. 이 구성은 ALB 하나이므로 1이 기본값이다.
+# CloudFront를 앞에 얹으면 2. 실제 토폴로지보다 크게 잡으면 클라이언트가
+# X-Forwarded-For를 위조해 rate limit을 우회할 수 있다.
+# trust_proxy_hops = 1
+
+# SQS 메인 큐/DLQ와 task IAM 권한. 기본은 false다 — 이 앱의 messaging root는
+# BullMQ/Redis이고 MESSAGE_QUEUE_URL을 읽는 코드가 없다.
+# 켜려면 MessageQueuePort의 SQS adapter를 먼저 만든다.
+# enable_sqs = false
+
 # MongoDB Atlas 등 외부 MongoDB URI를 담은 Secrets Manager ARN. 사용하지 않으면 생략한다.
 # mongodb_secret_arn = "arn:aws:secretsmanager:ap-northeast-2:123456789012:secret:mongodb-uri"

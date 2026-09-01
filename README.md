@@ -109,19 +109,26 @@ Matt Pocock의 안정 `engineering`/`productivity` 스킬을 두 에이전트에
 
 ## AWS Terraform
 
-`infra/terraform`은 ECS Fargate, ALB, RDS(PostgreSQL/MySQL/MariaDB), 선택형 ElastiCache Valkey,
-SQS/DLQ의 시작 구성입니다. MongoDB는 DocumentDB로 가정하지 않고 외부 관리형 Mongo URI를 Secrets
-Manager로 주입할 수 있게 둡니다.
+`infra/terraform`은 ECS Fargate, ALB, RDS(PostgreSQL/MySQL/MariaDB), 선택형 ElastiCache Valkey의
+시작 구성입니다. MongoDB는 DocumentDB로 가정하지 않고 외부 관리형 Mongo URI를 Secrets Manager로
+주입할 수 있게 둡니다. SQS/DLQ는 `enable_sqs`로 끌 수 있으며 기본은 꺼짐입니다 — 이 앱의 messaging
+composition root는 BullMQ/Redis입니다.
 
 ```bash
 cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars
+cp terraform.tfvars.example terraform.tfvars   # cors_origins는 필수입니다
 terraform init -backend-config=backend.hcl
 terraform plan
 ```
 
 실제 backend와 secret 값은 커밋하지 않습니다. 처음에는 `backend.hcl.example`을 환경별 파일로
 복사하고, state bucket/versioning/lock 설정을 먼저 준비합니다.
+
+이 구성은 [별도 저장소로 분리해 버전 모듈로 참조](./docs/terraform-repo-boundary.md)하는 방향으로
+갑니다. 그래서 파생 프로젝트가 고쳤을 값은 사본을 편집하는 대신 input으로 노출합니다.
+
+terraform-only 변경은 앱 CI를 태우지 않고 `.github/workflows/terraform.yml`이 fmt/init/validate를
+돌립니다. `plan`/`apply`는 아직 CI에 없습니다.
 
 ## 검증
 

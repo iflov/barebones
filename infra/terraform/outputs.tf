@@ -12,7 +12,7 @@ output "rds_master_secret_arn" {
 }
 
 output "message_queue_url" {
-  value = aws_sqs_queue.messages.url
+  value = var.enable_sqs ? aws_sqs_queue.messages[0].url : null
 }
 
 output "redis_endpoint" {

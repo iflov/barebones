@@ -53,6 +53,8 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy" "messages" {
+  count = var.enable_sqs ? 1 : 0
+
   name = "messages"
   role = aws_iam_role.ecs_task.id
 
@@ -68,15 +70,16 @@ resource "aws_iam_role_policy" "messages" {
         "sqs:SendMessage"
       ]
       Effect   = "Allow"
-      Resource = aws_sqs_queue.messages.arn
+      Resource = aws_sqs_queue.messages[0].arn
     }]
   })
 }
 
 locals {
-  app_environment = [
+  app_environment = concat([
     { name = "NODE_ENV", value = "production" },
     { name = "APP_PORT", value = tostring(var.container_port) },
+    { name = "TRUST_PROXY_HOPS", value = tostring(var.trust_proxy_hops) },
     { name = "DB_TYPE", value = local.db_driver },
     { name = "DB_HOST", value = aws_db_instance.this.address },
     { name = "DB_PORT", value = tostring(local.db_port) },
@@ -86,10 +89,13 @@ locals {
     { name = "REDIS_HOST", value = var.enable_redis ? aws_elasticache_replication_group.this[0].primary_endpoint_address : "localhost" },
     { name = "BULLMQ_ENABLED", value = tostring(var.enable_redis) },
     { name = "MONGODB_ENABLED", value = tostring(local.mongodb_on) },
-    { name = "MESSAGE_QUEUE_URL", value = aws_sqs_queue.messages.url },
     { name = "PROMETHEUS_ENABLED", value = "true" },
-    { name = "CORS_ORIGINS", value = "https://replace-me.example" }
-  ]
+    { name = "CORS_ORIGINS", value = join(",", var.cors_origins) }
+    ],
+    # 앱은 allowUnknown이라 이 변수가 남아도 부팅은 되지만, 큐가 없으면
+    # 가리킬 URL도 없다. 켰을 때만 주입한다.
+    var.enable_sqs ? [{ name = "MESSAGE_QUEUE_URL", value = aws_sqs_queue.messages[0].url }] : []
+  )
 
   app_secrets = concat(
     [{

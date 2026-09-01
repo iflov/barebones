@@ -1,9 +1,19 @@
 name: CI
 
+# terraform-only 변경은 이 파이프라인을 태우지 않는다 — `terraform.yml`이 대신 돈다.
+# `pull_request`와 `push`는 별개 이벤트라 양쪽에 모두 필요하다.
+#
+# ⚠ main에 branch protection이나 ruleset을 걸 때 이 job을 required check로
+# 지정하면, skip된 실행이 Pending으로 남아 terraform-only PR이 영구히 막힌다.
+# 그때는 required check를 두지 말고 별도 gate job을 쓴다.
 on:
   pull_request:
+    paths-ignore:
+      - 'infra/terraform/**'
   push:
     branches: [main]
+    paths-ignore:
+      - 'infra/terraform/**'
 
 permissions:
   contents: read
