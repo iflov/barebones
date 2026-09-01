@@ -67,7 +67,7 @@ adapters/in
 ## Infrastructure
 
 - 로컬 의존성은 Docker Compose에서 실행한다. sql.js 같은 인메모리 RDB 대체물을 사용하지 않는다.
-- AWS Terraform은 기본 배포 시작점이며 state backend와 secret 값은 환경별로 분리한다.
+- 배포 인프라는 이 저장소에 없다. 컨테이너 경계(`Dockerfile`, Compose)까지가 이 저장소의 범위다.
 - app 시작 순서에는 Docker healthcheck를 사용한다.
 - 선택된 필수 의존성이 실행 중 실패하면 readiness는 `503`이다.
 

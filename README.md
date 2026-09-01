@@ -107,28 +107,16 @@ Matt Pocock의 안정 `engineering`/`productivity` 스킬을 두 에이전트에
 두 디렉터리는 symlink로 공유하지 않습니다. 각 에이전트가 해당 디렉터리만 읽습니다. 스킬은
 사용자가 이름을 명시했을 때만 실행합니다.
 
-## AWS Terraform
+## 배포
 
-`infra/terraform`은 ECS Fargate, ALB, RDS(PostgreSQL/MySQL/MariaDB), 선택형 ElastiCache Valkey의
-시작 구성입니다. MongoDB는 DocumentDB로 가정하지 않고 외부 관리형 Mongo URI를 Secrets Manager로
-주입할 수 있게 둡니다. SQS/DLQ는 `enable_sqs`로 끌 수 있으며 기본은 꺼짐입니다 — 이 앱의 messaging
-composition root는 BullMQ/Redis입니다.
+이 저장소의 범위는 **컨테이너 경계까지**입니다 — `Dockerfile`과 Compose가 "이 서비스를
+어떻게 돌리나"를 정의하고, `.env.example`과 `src/config/env.validation.ts`가 "앱이 무슨
+설정을 요구하나"를 정의합니다. 둘 다 클라우드에 무관합니다.
 
-```bash
-cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars   # cors_origins는 필수입니다
-terraform init -backend-config=backend.hcl
-terraform plan
-```
-
-실제 backend와 secret 값은 커밋하지 않습니다. 처음에는 `backend.hcl.example`을 환경별 파일로
-복사하고, state bucket/versioning/lock 설정을 먼저 준비합니다.
-
-이 구성은 [별도 저장소로 분리해 버전 모듈로 참조](./docs/terraform-repo-boundary.md)하는 방향으로
-갑니다. 그래서 파생 프로젝트가 고쳤을 값은 사본을 편집하는 대신 input으로 노출합니다.
-
-terraform-only 변경은 앱 CI를 태우지 않고 `.github/workflows/terraform.yml`이 fmt/init/validate를
-돌립니다. `plan`/`apply`는 아직 CI에 없습니다.
+AWS 인프라는 [iflov/barebones-infra](https://github.com/iflov/barebones-infra)에 있습니다.
+2026-09-01에 분리했습니다 — VPC·ALB·ECS 클러스터는 환경당 정확히 하나뿐인 **인스턴스**라
+스캐폴드가 실을 수 없고, 그 소비자에는 이 스캐폴드에서 나오지 않은 저장소도 포함됩니다.
+근거와 검증 과정은 [결정 문서](./docs/terraform-repo-boundary.md)에 있습니다.
 
 ## 검증
 
