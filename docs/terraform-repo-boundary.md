@@ -4,6 +4,23 @@
 > `infra/terraform`을 앱 저장소 밖으로 뺄 것인가. 3라운드 교차검증 결과와 내린 결정.
 > 조사 2026-08-31 · 결정 2026-09-01
 >
+> **✅ 종결 (2026-09-01): `infra/terraform`은 [iflov/barebones-infra](https://github.com/iflov/barebones-infra)로
+> 나갔다.** 이 문서는 그 결정의 기록으로 barebones에 남는다.
+>
+> 최종 근거는 저장소 경계도 CI 비용도 아니었다 — **barebones는 스캐폴드이고 스캐폴드는
+> 템플릿만 실을 수 있는데, foundation은 환경당 하나뿐인 인스턴스다.** VPC·ALB·ECS
+> 클러스터는 복제하면 사고이지 기능이 아니고, 그 소비자에는 이 스캐폴드에서 나오지
+> 않은 저장소(frontend 등)도 포함된다. 아래 "2026-09-01 재검토"에서 변경 빈도와
+> blast radius로 그은 foundation/service 선이, 재사용 가능성으로 그으면 나오는
+> "인스턴스 / 템플릿" 선과 같았다.
+>
+> 남은 배포 경계는 컨테이너까지다 — `Dockerfile`, Compose, `.env.example`,
+> `src/config/env.validation.ts`. 전부 클라우드에 무관하다.
+>
+> 이전은 `git subtree split`으로 했고 이 구성을 만든 커밋 3개가 함께 갔다.
+>
+> ---
+>
 > **⚠ 아래 "추천과 그 근거"는 2026-09-01에 폐기됐다.** 그 추천은 "terraform 사본 하나당
 > 소비자 하나"를 전제했는데, 사용자가 그 전제가 틀렸다고 정정했다 — frontend와 다른
 > 서비스가 **같은 인프라를 나눠 쓴다.** 갱신된 판단은 아래 "2026-09-01 재검토"에 있다.
