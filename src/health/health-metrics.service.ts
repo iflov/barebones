@@ -1,6 +1,6 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Gauge } from 'prom-client';
+import { Gauge } from '@prometheus-io/client';
 
 import { MetricsService } from '../infra/metrics/metrics.service.js';
 import { HealthCoordinator } from './application/health.coordinator.js';
@@ -19,7 +19,7 @@ import { HealthCoordinator } from './application/health.coordinator.js';
  *       → preset metrics controller
  *         → metricsService.render()
  *           → registry.metrics()
- *             → prom-client가 이 Gauge의 collect 콜백 자동 실행
+ *             → @prometheus-io/client가 이 Gauge의 collect 콜백 자동 실행
  *               → gauge.reset() (이전 값 초기화)
  *               → healthCoordinator.inspectIndicators() (DB, Redis 등 체크)
  *               → gauge.set({ indicator: 'database' }, 1) 등 값 세팅
@@ -91,7 +91,7 @@ export class HealthMetricsService implements OnModuleInit {
      */
     const gauge = new Gauge({
       /**
-       * collect 콜백 = Prometheus 스크랩 시점에 prom-client가 자동 호출하는 훅
+       * collect 콜백 = Prometheus 스크랩 시점에 @prometheus-io/client가 자동 호출하는 훅
        *
        * setInterval로 주기적 업데이트하는 방식과 비교:
        *   - setInterval: 스크랩과 타이밍 어긋나면 stale 데이터, 생명주기 관리 필요

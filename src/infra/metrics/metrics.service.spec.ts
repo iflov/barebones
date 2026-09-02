@@ -1,17 +1,17 @@
 import type { ConfigService } from '@nestjs/config';
-import type * as PromClient from 'prom-client';
-import { collectDefaultMetrics } from 'prom-client';
+import type * as PromClient from '@prometheus-io/client';
+import { collectDefaultMetrics } from '@prometheus-io/client';
 
 import { MetricsService } from './metrics.service.js';
 
-vi.mock('prom-client', async (): Promise<typeof PromClient> => {
-  const actual = await vi.importActual<typeof PromClient>('prom-client');
+vi.mock('@prometheus-io/client', async (): Promise<typeof PromClient> => {
+  const actual = await vi.importActual<typeof PromClient>('@prometheus-io/client');
   const collectDefaultMetricsMock = vi.fn() as unknown as typeof actual.collectDefaultMetrics;
 
   collectDefaultMetricsMock.metricsList = [];
 
   // 서드파티 모듈 표면을 그대로 다시 내보내면서 하나만 교체한다.
-  // 여기서 필드를 명시할 수는 없다 — 우리가 정의한 구조가 아니라 prom-client의 것이고,
+  // 여기서 필드를 명시할 수는 없다 — 우리가 정의한 구조가 아니라 @prometheus-io/client의 것이고,
   // 손으로 나열하면 버전이 올라갈 때마다 조용히 빠진 export가 생긴다.
   // constitution A-5의 예외이며, 객체 spread 대신 Object.assign을 쓴다.
   return Object.assign({}, actual, { collectDefaultMetrics: collectDefaultMetricsMock });

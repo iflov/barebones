@@ -1,4 +1,4 @@
-import { Registry } from 'prom-client';
+import { Registry } from '@prometheus-io/client';
 
 import { BullmqMetricsService } from './bullmq-metrics.service.js';
 

@@ -1,6 +1,6 @@
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
 import { HttpException } from '@nestjs/common';
-import { Registry } from 'prom-client';
+import { Registry } from '@prometheus-io/client';
 import { lastValueFrom, of, Subject, throwError } from 'rxjs';
 
 import { MetricsInterceptor } from './http-metrics.interceptor.js';
