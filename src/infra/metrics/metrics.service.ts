@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { collectDefaultMetrics, Gauge, Registry } from 'prom-client';
+import { collectDefaultMetrics, Gauge, Registry } from '@prometheus-io/client';
 
 import { observabilityConfig } from '../../config/observability.config.js';
 

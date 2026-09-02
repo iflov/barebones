@@ -1,5 +1,5 @@
 import type { ModuleRef } from '@nestjs/core';
-import { Registry } from 'prom-client';
+import { Registry } from '@prometheus-io/client';
 
 import { HealthMetricsService } from './health-metrics.service.js';
 

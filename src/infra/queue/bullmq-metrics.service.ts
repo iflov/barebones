@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
+import { Counter, Gauge, Histogram } from '@prometheus-io/client';
 import type { Queue } from 'bullmq';
-import { Counter, Gauge, Histogram } from 'prom-client';
 
 import { MetricsService } from '../metrics/metrics.service.js';
 import { BACKGROUND_JOBS_QUEUE } from './background-jobs.constants.js';
