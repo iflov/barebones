@@ -252,7 +252,9 @@ test surface는 review에서 함께 확인한다.
 
 ## Current references
 
-- Health: `src/health/` — HTTP 진입점, coordinator, outbound port, 여러 adapter, readiness mapping.
+- Health: `src/health/` — inbound port(`application/ports/in/health.port.ts`)와 그 구현인
+  coordinator, outbound `HealthIndicatorPort`와 여러 adapter, `domain/`의 공개 타입,
+  HTTP readiness mapping. 두 방향의 port가 모두 있는 유일한 capability다.
 - Messaging: `src/common/messaging/message-queue.port.ts`와 `src/infra/queue/` — shared platform port와
   BullMQ adapter/delivery policy. 제품 job handler reference는 아직 아니다.
 - Persistence: `src/common/persistence/`와 `test/persistence.e2e-spec.ts` — 실제 DB translation test가
@@ -260,13 +262,13 @@ test surface는 review에서 함께 확인한다.
 
 ## 이 템플릿이 아직 문서를 따라가지 못하는 곳
 
-문서를 먼저 고치고 코드를 뒤에 옮긴다. 지금 어긋난 자리를 적어둔다 — 적어두지 않으면 다음
-프로젝트가 이 코드를 보고 이미 폐기된 형태로 시작한다.
+문서를 먼저 고치고 코드를 뒤에 옮긴다. 지금 어긋난 자리를 적어둔다.
 
-| 자리                             | 어긋난 것                                                                                                                                                                                                                                 |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/health/`                    | `QueryBus` + `GetHealthQuery`로 진입한다. 호출자가 `health.controller.ts` 하나뿐이라 위 「전역 Command/Query 버스는 기본이 아니다」의 조건을 만족하지 못한다. `application/ports/in/health.port.ts` + `HealthCoordinator` 주입으로 옮긴다 |
-| `health.controller.ts`           | `execute<GetHealthQuery, SystemHealth>(...)`로 타입 인자를 **둘** 명시한다. `@nestjs/cqrs`의 두 번째 오버로드가 잡혀 결과 타입을 거짓말해도 `tsc`가 통과시킨다(파생 프로젝트에서 실측). 버스를 걷어내면 이 함정 자체가 사라진다           |
-| `application/ports/`             | `in`/`out`으로 나뉘어 있지 않다                                                                                                                                                                                                           |
-| `src/architecture-rule-fixture/` | 파일 없는 빈 디렉토리 셋. *"빈 폴더는 만들지 않는다"*를 템플릿이 어기고 있다                                                                                                                                                              |
-| ESLint                           | 위 「Tests and enforcement」의 4번(capability를 넘는 adapter import 차단)이 없다                                                                                                                                                          |
+**현재 비어 있다.** 2026-09-03에 다섯 줄을 모두 닫았다 — `src/health/`가 `QueryBus` +
+`GetHealthQuery` 대신 `application/ports/in/health.port.ts`로 진입하고, `ports/`가 `in`/`out`으로
+나뉘었으며, `@nestjs/cqrs`가 의존성에서 빠졌고, 「Tests and enforcement」의 4번 lint 규칙이
+들어왔다. `src/architecture-rule-fixture/`의 빈 디렉토리 셋은 git이 추적하지 않던 것이라
+체크아웃에서만 지웠다 — 새 clone에는 원래 없다.
+
+다음에 어긋나는 것이 생기면 여기에 표로 적는다. 적어두지 않으면 다음 프로젝트가 이 코드를
+보고 이미 폐기된 형태로 시작한다.

@@ -1,11 +1,11 @@
 # Barebones NestJS Scaffold
 
 도메인과 인증을 포함하지 않는 NestJS 12 백엔드 시작점입니다. 파생 프로젝트가 필요한 도메인만
-추가할 수 있도록 헥사고날 경계, CQRS-lite, 로컬 Docker 인프라와 운영 기본값을 제공합니다.
+추가할 수 있도록 헥사고날 경계, 두 방향의 port, 로컬 Docker 인프라와 운영 기본값을 제공합니다.
 
 ## 포함 범위
 
-- HTTP inbound adapter → CQRS command/query handler → application port → outbound adapter
+- HTTP inbound adapter → inbound port → application service → outbound port → outbound adapter
 - 생성 시 한 번 선택하는 RDB/ORM 조합
   - RDB: PostgreSQL, MySQL, MariaDB
   - ORM: TypeORM(기본), Prisma, MikroORM, Drizzle 프로필
@@ -78,19 +78,24 @@ pnpm scaffold:select --orm=drizzle --database=mariadb --apply
 
 ```text
 HTTP / CLI
-  → Controller / Command
-  → CommandHandler | QueryHandler
-  → Application service or coordinator
-  → Port
+  → Controller
+  → inbound port (application/ports/in)
+  → application service (inbound port의 구현)
+  → outbound port (application/ports/out)
   → TypeORM | Prisma | MikroORM | Drizzle | MongoDB | Redis | BullMQ/SQS/...
 ```
 
-CQRS-lite 규칙:
+경계 규칙:
 
-- create/update/delete는 CommandHandler와 쓰기 포트를 사용합니다.
-- read는 QueryHandler를 사용하고 외부 I/O가 있으면 이름 있는 QueryPort를 사용합니다.
+- capability가 밖에 공개하는 것은 `application/ports/in/`의 interface + Symbol 토큰과 `domain/`의
+  타입·순수 함수 둘뿐입니다. `adapters/`와 `application/ports/out/`은 공개하지 않습니다.
+- 소비자는 `@Inject(TOKEN)`으로 받고 타입은 `import type`으로 봅니다. 구현 클래스는 module
+  `exports`에 싣지 않습니다 — 그래야 capability 사이 순환 참조가 생기지 않습니다.
+- 전역 `CommandBus`/`QueryBus`는 기본이 아닙니다. 같은 메시지를 여러 inbound가 보내거나 dispatch
+  자체가 값을 할 때만 씁니다. 근거는 [ARCHITECTURE.md](./ARCHITECTURE.md)의
+  「전역 Command/Query 버스는 기본이 아니다」에 있습니다.
 - 외부 I/O port는 구현체가 하나여도 사용하는 capability가 소유합니다.
-- Handler가 use case이므로 전달만 하는 별도 UseCase 계층을 겹치지 않습니다.
+- Application service가 use case이므로 전달만 하는 별도 UseCase 계층을 겹치지 않습니다.
 - ORM model은 outbound adapter가 소유하며 별도 Mapper 클래스는 mapping이 복잡해질 때만 만듭니다.
 - 단순 기능에 별도 read model이나 event sourcing을 강제하지 않습니다.
 - 한 aggregate의 authoritative store는 하나입니다. RDB와 MongoDB 동시 쓰기는 기본값이 아닙니다.

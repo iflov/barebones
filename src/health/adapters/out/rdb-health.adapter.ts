@@ -4,10 +4,8 @@ import {
   RDB_HEALTH_PROBE,
   type RdbHealthProbePort,
 } from '../../../common/persistence/rdb-health-probe.port.js';
-import type {
-  HealthIndicatorPort,
-  HealthIndicatorSnapshot,
-} from '../../application/ports/health-indicator.port.js';
+import type { HealthIndicatorPort } from '../../application/ports/out/health-indicator.port.js';
+import type { HealthIndicatorSnapshot } from '../../domain/system-health.js';
 
 @Injectable()
 export class RdbHealthAdapter implements HealthIndicatorPort {

@@ -18,11 +18,11 @@ import { MongodbHealthAdapter } from './adapters/out/mongodb-health.adapter.js';
 import { RdbHealthAdapter } from './adapters/out/rdb-health.adapter.js';
 import { RedisHealthAdapter } from './adapters/out/redis-health.adapter.js';
 import { HealthCoordinator } from './application/health.coordinator.js';
+import { HEALTH } from './application/ports/in/health.port.js';
 import {
   HEALTH_INDICATORS,
   type HealthIndicatorPort,
-} from './application/ports/health-indicator.port.js';
-import { GetHealthQueryHandler } from './application/queries/get-health.query-handler.js';
+} from './application/ports/out/health-indicator.port.js';
 import { HealthMetricsService } from './health-metrics.service.js';
 
 const healthAdapterTypes: Type<HealthIndicatorPort>[] = [
@@ -37,21 +37,25 @@ if (featureFlags.mongodb) {
 }
 
 /**
- * System health 헥사고날 모듈.
+ * System health capability의 composition root — 두 방향의 port에 구현을 묶는 유일한 지점.
  *
- * inbound adapter는 QueryBus를 통해 진입하고, Coordinator는 기술별 outbound adapter를
- * 모른 채 `HealthIndicatorPort` 목록만 실행한다. HTTP·CLI·Prometheus가 같은 판단을 공유한다.
+ * inbound adapter는 `HEALTH` 토큰으로 진입하고, Coordinator는 기술별 outbound adapter를
+ * 모른 채 `HealthIndicatorPort` 목록만 실행한다. HTTP·Prometheus가 같은 판단을 공유한다.
+ *
+ * `exports`에 토큰만 있고 `HealthCoordinator` 클래스는 없다. 소비자는 `@Inject(HEALTH)`로 받고
+ * 타입은 `import type`으로 보므로 구현 클래스가 소비자의 런타임 import 그래프에 들어가지 않는다.
+ * `HealthMetricsService`는 클래스로 나가는데, 이것이 `MetricsModule`에 붙는 gauge 등록
+ * 그 자체이고 대체할 계약이 없기 때문이다.
  */
 @Module({
   controllers: [HealthController],
   imports: [RdbDatabaseModule, RedisModule],
-  exports: [HealthCoordinator, HealthMetricsService],
+  exports: [HEALTH, HealthMetricsService],
   providers: [
     { provide: DISK_SPACE_PROBE, useValue: nodeDiskSpaceProbe },
     { provide: MEMORY_USAGE_PROBE, useValue: processMemoryUsageProbe },
     ...healthAdapterTypes,
-    GetHealthQueryHandler,
-    HealthCoordinator,
+    { provide: HEALTH, useClass: HealthCoordinator },
     HealthMetricsService,
     {
       inject: healthAdapterTypes,

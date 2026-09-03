@@ -26,13 +26,13 @@ pnpm build
 [`ARCHITECTURE.md`](./ARCHITECTURE.md)를 먼저 읽는다. 이 절은 항상 필요한 실행 요약만 둔다.
 
 ```text
-adapter/in → application command/query → application port → adapter/out
+adapter/in → application/ports/in → application service → application/ports/out → adapter/out
 ```
 
 - Controller는 HTTP 상태와 DTO 변환만 담당한다.
-- CommandHandler는 상태 변경 사용 사례를 실행한다.
-- QueryHandler는 조회 사용 사례를 실행한다.
-- Handler가 use case다. 전달만 하는 별도 UseCase 계층을 겹쳐 만들지 않는다.
+- capability가 밖에 공개하는 것은 `application/ports/in/`의 interface + Symbol 토큰과 `domain/`의
+  타입·순수 함수 둘뿐이다. 구현 클래스는 module `exports`에 싣지 않는다.
+- Application service가 use case다. 전달만 하는 별도 UseCase 계층을 겹쳐 만들지 않는다.
 - HTTP, CLI, metrics가 같은 판단을 해야 하면 application coordinator를 공유한다.
 - application/domain에서 TypeORM, Prisma, Mongoose, Redis, BullMQ 타입을 import하지 않는다.
 - application이 외부 I/O를 사용하면 구현체 수와 관계없이 capability가 소유한 이름 있는 port를 둔다.
@@ -107,10 +107,12 @@ optionalDependencies로 싣는다.
   (`ReferenceError: exports is not defined in ES module scope`).
 - **TypeScript 7 차단을 풀지 못한다.** 빌더와 무관하게 Nest CLI가 compiler API를 먼저 요구한다.
 
-## CQRS-lite
+## Port 경계
 
-- create/update/delete: Command + CommandHandler + 이름 있는 write port
-- read: Query + QueryHandler; 외부 I/O가 있으면 이름 있는 query port
+- 소비자는 상대의 inbound port를 `@Inject(TOKEN)`으로 받고 타입은 `import type`으로 본다.
+- 외부 I/O는 구현체가 하나여도 `application/ports/out/`에 이름 있는 port를 둔다.
+- 전역 `CommandBus`/`QueryBus`는 기본이 아니다. 같은 메시지를 여러 inbound가 보내거나 dispatch
+  자체가 값을 할 때만 쓴다(`ARCHITECTURE.md`의 「전역 Command/Query 버스는 기본이 아니다」).
 - 범용 CRUD repository를 도메인 API로 노출하지 않는다.
 - event sourcing, 별도 read database, eventual consistency는 제품 요구가 있을 때만 추가한다.
 

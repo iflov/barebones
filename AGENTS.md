@@ -10,9 +10,9 @@
 
 ```text
 adapters/in
-  → application/commands | application/queries
-  → application service/coordinator
-  → application port
+  → application/ports/in (interface + Symbol 토큰)
+  → application service/coordinator (inbound port의 구현)
+  → application/ports/out
   → adapters/out
   → external system
 ```
@@ -20,16 +20,20 @@ adapters/in
 - 의존성은 바깥 adapter에서 application/domain 방향으로 향한다.
 - application/domain은 Nest transport, ORM, DB driver, Redis, BullMQ 타입을 import하지 않는다.
 - application이 외부 I/O를 사용하면 구현체 수와 관계없이 capability가 소유한 이름 있는 port를 둔다.
-- Handler가 use case다. 같은 판단을 전달만 하는 별도 UseCase 계층을 겹쳐 만들지 않는다.
+- Application service가 use case다. 같은 판단을 전달만 하는 별도 UseCase 계층을 겹쳐 만들지 않는다.
 - ORM model은 outbound adapter가 소유하고 변환은 adapter 안의 작은 함수에서 시작한다.
 - Controller는 HTTP 입력·출력·상태 코드만 책임진다.
 - CLI와 HTTP가 같은 판단을 사용하면 Controller가 아니라 application coordinator를 재사용한다.
 - health Controller는 coordinator 결과 `up/down`을 각각 `200/503`으로 매핑한다.
 
-## CQRS-lite
+## Port 경계
 
-- create/update/delete는 Command와 CommandHandler를 사용한다.
-- read는 Query와 QueryHandler를 사용한다.
+- capability가 밖에 공개하는 것은 `application/ports/in/`의 interface + Symbol 토큰과 `domain/`의
+  타입·순수 함수 둘뿐이다. `adapters/`와 `application/ports/out/`은 공개하지 않는다.
+- 구현 클래스는 module `exports`에 싣지 않는다. 소비자는 `@Inject(TOKEN)`으로 받고 타입은
+  `import type`으로 본다 — 그래야 capability 사이 순환 참조가 생기지 않는다.
+- 전역 `CommandBus`/`QueryBus`는 기본이 아니다. 같은 메시지를 여러 inbound가 보내거나 dispatch
+  자체가 값을 할 때만 쓴다(`ARCHITECTURE.md`의 「전역 Command/Query 버스는 기본이 아니다」).
 - 이름 있는 write/query port를 사용하고 범용 CRUD 계약을 application interface에 노출하지 않는다.
 - 별도 read database, event sourcing, eventual consistency는 요구사항이 있을 때만 도입한다.
 

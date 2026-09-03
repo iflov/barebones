@@ -1,9 +1,9 @@
-import { Injectable, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { Gauge } from '@prometheus-io/client';
 
 import { MetricsService } from '../infra/metrics/metrics.service.js';
-import { HealthCoordinator } from './application/health.coordinator.js';
+import { HEALTH, type HealthPort } from './application/ports/in/health.port.js';
 
 /**
  * 헬스체크 결과를 Prometheus Gauge 메트릭으로 노출하는 서비스
@@ -21,7 +21,7 @@ import { HealthCoordinator } from './application/health.coordinator.js';
  *           → registry.metrics()
  *             → @prometheus-io/client가 이 Gauge의 collect 콜백 자동 실행
  *               → gauge.reset() (이전 값 초기화)
- *               → healthCoordinator.inspectIndicators() (DB, Redis 등 체크)
+ *               → health.inspectIndicators() (DB, Redis 등 체크)
  *               → gauge.set({ indicator: 'database' }, 1) 등 값 세팅
  *             → 텍스트로 직렬화하여 반환
  *
@@ -48,7 +48,7 @@ export class HealthMetricsService implements OnModuleInit {
      * ModuleRef + onModuleInit 조합으로 느슨하게 연결한다.
      */
     private readonly moduleRef: ModuleRef,
-    private readonly healthCoordinator: HealthCoordinator,
+    @Inject(HEALTH) private readonly health: HealthPort,
   ) {}
 
   onModuleInit(): void {
@@ -104,7 +104,7 @@ export class HealthMetricsService implements OnModuleInit {
       collect: async () => {
         gauge.reset();
 
-        const statuses = await this.healthCoordinator.inspectIndicators();
+        const statuses = await this.health.inspectIndicators();
 
         Object.entries(statuses).forEach(([indicator, value]) => {
           gauge.set({ indicator }, value);
