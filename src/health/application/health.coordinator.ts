@@ -31,17 +31,6 @@ export class HealthCoordinator implements HealthPort {
     return { indicators: snapshots, status };
   }
 
-  async inspectIndicators(): Promise<Record<string, number>> {
-    const health = await this.check();
-    const statusByIndicator: Record<string, number> = {};
-
-    for (const [key, snapshot] of Object.entries(health.indicators)) {
-      statusByIndicator[key] = snapshot.status === 'up' ? 1 : 0;
-    }
-
-    return statusByIndicator;
-  }
-
   private async checkIndicator(indicator: HealthIndicatorPort): Promise<HealthIndicatorSnapshot> {
     try {
       return await indicator.check();

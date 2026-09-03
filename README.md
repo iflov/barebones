@@ -77,8 +77,8 @@ pnpm scaffold:select --orm=drizzle --database=mariadb --apply
 전체 규칙과 새 capability 작성 기준은 [ARCHITECTURE.md](./ARCHITECTURE.md)가 단일 진실 원천입니다.
 
 ```text
-HTTP / CLI
-  → Controller
+HTTP / CLI / message
+  → inbound adapter (Controller, CLI command, consumer)
   → inbound port (application/ports/in)
   → application service (inbound port의 구현)
   → outbound port (application/ports/out)

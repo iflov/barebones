@@ -52,13 +52,4 @@ describe('HealthCoordinator', () => {
       status: 'down',
     });
   });
-
-  it('maps snapshots to prometheus gauge values', async () => {
-    const coordinator = new HealthCoordinator([
-      indicator('database', { status: 'up' }),
-      indicator('redis', { status: 'down' }),
-    ]);
-
-    await expect(coordinator.inspectIndicators()).resolves.toEqual({ database: 1, redis: 0 });
-  });
 });

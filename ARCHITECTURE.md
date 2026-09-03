@@ -264,11 +264,14 @@ test surface는 review에서 함께 확인한다.
 
 문서를 먼저 고치고 코드를 뒤에 옮긴다. 지금 어긋난 자리를 적어둔다.
 
-**현재 비어 있다.** 2026-09-03에 다섯 줄을 모두 닫았다 — `src/health/`가 `QueryBus` +
-`GetHealthQuery` 대신 `application/ports/in/health.port.ts`로 진입하고, `ports/`가 `in`/`out`으로
-나뉘었으며, `@nestjs/cqrs`가 의존성에서 빠졌고, 「Tests and enforcement」의 4번 lint 규칙이
-들어왔다. `src/architecture-rule-fixture/`의 빈 디렉토리 셋은 git이 추적하지 않던 것이라
-체크아웃에서만 지웠다 — 새 clone에는 원래 없다.
+2026-09-03에 다섯 줄을 닫았다 — `src/health/`가 `QueryBus` + `GetHealthQuery` 대신
+`application/ports/in/health.port.ts`로 진입하고, `ports/`가 `in`/`out`으로 나뉘었으며,
+`@nestjs/cqrs`가 의존성에서 빠졌고, 「Tests and enforcement」의 4번 lint 규칙이 들어왔다.
+`src/architecture-rule-fixture/`의 빈 디렉토리 셋은 git이 추적하지 않던 것이라 체크아웃에서만
+지웠다 — 새 clone에는 원래 없다.
 
-다음에 어긋나는 것이 생기면 여기에 표로 적는다. 적어두지 않으면 다음 프로젝트가 이 코드를
-보고 이미 폐기된 형태로 시작한다.
+리뷰가 남긴 한 줄이 아직 열려 있다.
+
+| 자리                                   | 어긋난 것                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/health/health-metrics.service.ts` | optional한 `MetricsService`를 `ModuleRef.get(..., { strict: false })`로 찾는다. optional dependency와 그 실패 모드가 module wiring이 아니라 DI lookup 안에 숨는다. 위 「Composition and platform modules」는 그런 선택을 composition root에 남기라고 한다. 고치려면 metrics 유무에 따른 provider 구성을 바꿔야 하고 그것은 health 밖의 결정이라 별도 작업으로 둔다 |

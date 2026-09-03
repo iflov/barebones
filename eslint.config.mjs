@@ -196,6 +196,26 @@ export default tseslint.config(
     // 막는 것은 **capability 이름을 거쳐 adapters로 들어가는 경로**다. 자기 capability 안의
     // `./adapters/**`·`../adapters/**`는 걸리지 않는다 — module이 자기 adapter를 조립하는
     // 것은 composition root의 일이다.
+    //
+    // ## ⚠ glob 네 개가 필요한 이유 (2026-09-03 실측)
+    //
+    // 이 rule의 glob은 import 문자열을 **그대로** 본다. 경로를 resolve하지 않으므로 `..`가
+    // 리터럴 segment이고, 거기서 둘이 따라온다.
+    //
+    //   - `**`는 `..`를 **건너지 못한다.** `**/*/adapters/**` 하나로 끝내려 하면 상대 경로
+    //     위반을 전부 놓친다(실측: 깊이 1도 통과). 반면 리터럴 `../`로 시작한 뒤의 `**`는
+    //     남은 `..`를 건넌다 — 그래서 `../**/*/adapters/**`가 깊이와 무관하게 문다.
+    //   - 그래서 `../`로 시작하는 짝과 `./`로 시작하는 짝이 각각 필요하다. 앞의 둘이
+    //     capability 안에서 나가는 경로를, 뒤의 둘이 `src/app.module.ts`처럼 이미 capability
+    //     밖에 있는 파일의 `./health/adapters/**`를 잡는다.
+    //
+    // 깊이를 `../` 개수로 열거하면 **그보다 깊은 디렉토리가 조용히 빠져나간다.** 처음에는
+    // 네 단계까지만 열거돼 있었고, 리뷰가 여섯 단계짜리 위반을 만들어 통과시켰다.
+    //
+    // 반대 방향의 오검출 하나는 남긴다: `*`가 `..` segment에도 매치되므로 `../../adapters/**`
+    // 처럼 자기 adapter를 두 단계 위에서 부르는 형태도 걸린다. 그 자리는 `application/`·
+    // `domain/`뿐인데 아래 역방향 차단이 이미 막고 있고, adapter끼리는 `adapters` segment를
+    // 지나지 않고 서로 닿는다.
     files: ['src/**/*.ts', 'scripts/**/*.ts', 'test/**/*.ts'],
     rules: {
       'no-restricted-imports': [
@@ -205,11 +225,9 @@ export default tseslint.config(
             {
               group: [
                 '../*/adapters/**',
-                '../../*/adapters/**',
-                '../../../*/adapters/**',
-                '../../../../*/adapters/**',
-                '../src/*/adapters/**',
-                '../../src/*/adapters/**',
+                '../**/*/adapters/**',
+                './*/adapters/**',
+                './**/*/adapters/**',
               ],
               message:
                 'ARCHITECTURE.md: 다른 capability의 adapter를 직접 import하지 않는다. 그쪽이 공개한 application/ports/in 계약이나 domain 타입을 쓸 것. 테스트도 production interface를 쓴다.',

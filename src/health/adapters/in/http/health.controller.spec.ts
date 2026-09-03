@@ -9,10 +9,7 @@ import { HealthController } from './health.controller.js';
  * 대역이 `check`라는 메서드 이름을 갖는 것이 값이다 — 버스 시절에는 `execute()` 하나였다.
  */
 function port(result: SystemHealth): HealthPort {
-  return {
-    check: vi.fn().mockResolvedValue(result),
-    inspectIndicators: vi.fn(),
-  };
+  return { check: vi.fn().mockResolvedValue(result) };
 }
 
 describe('HealthController', () => {

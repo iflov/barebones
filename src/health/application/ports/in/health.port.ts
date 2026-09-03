@@ -21,16 +21,16 @@ import type { SystemHealth } from '../../../domain/system-health.js';
  * 결과 타입이 여기 한 번 적히고 호출부는 추론만 받는다.
  */
 export interface HealthPort {
-  /** 활성 의존성을 모두 확인한 판정. `up`/`down`을 HTTP 상태로 옮기는 것은 호출부의 몫이다. */
-  check(): Promise<SystemHealth>;
-
   /**
-   * 같은 판정을 indicator별 `1`/`0`으로 본 것. Prometheus gauge가 이 모양을 요구한다.
+   * 활성 의존성을 모두 확인한 판정. `up`/`down`을 무엇으로 옮길지는 호출부가 정한다 —
+   * HTTP adapter는 `200`/`503`으로, Prometheus adapter는 gauge의 `1`/`0`으로 옮긴다.
    *
-   * `check()`와 나뉜 이유는 표현이 아니라 **호출 시점**이다 — scrape 콜백은 요청 경로 밖에서
-   * 돌고, HTTP 상태 매핑도 예외 변환도 필요로 하지 않는다.
+   * ⚠ **그 숫자 encoding을 여기에 두지 않는다.** 한때 `inspectIndicators(): Promise<Record<
+   * string, number>>`가 이 계약에 있었고, 그것은 gauge 표현을 capability의 공개 API로
+   * 만드는 것이었다 — metrics backend를 바꾸면 health의 외부 계약이 따라 바뀐다. 표현은
+   * 그것을 요구하는 adapter가 소유한다.
    */
-  inspectIndicators(): Promise<Record<string, number>>;
+  check(): Promise<SystemHealth>;
 }
 
 /**

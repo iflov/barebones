@@ -42,15 +42,15 @@ if (featureFlags.mongodb) {
  * inbound adapter는 `HEALTH` 토큰으로 진입하고, Coordinator는 기술별 outbound adapter를
  * 모른 채 `HealthIndicatorPort` 목록만 실행한다. HTTP·Prometheus가 같은 판단을 공유한다.
  *
- * `exports`에 토큰만 있고 `HealthCoordinator` 클래스는 없다. 소비자는 `@Inject(HEALTH)`로 받고
- * 타입은 `import type`으로 보므로 구현 클래스가 소비자의 런타임 import 그래프에 들어가지 않는다.
- * `HealthMetricsService`는 클래스로 나가는데, 이것이 `MetricsModule`에 붙는 gauge 등록
- * 그 자체이고 대체할 계약이 없기 때문이다.
+ * `exports`에는 `HEALTH` 토큰 하나만 있다. 소비자는 `@Inject(HEALTH)`로 받고 타입은
+ * `import type`으로 보므로 구현 클래스가 소비자의 런타임 import 그래프에 들어가지 않는다.
+ * `HealthMetricsService`도 나가지 않는다 — 그것은 `MetricsService`의 registry에 gauge를 붙이는
+ * 이 capability의 inbound infrastructure adapter이고, 밖에서 주입받을 것이 아니다.
  */
 @Module({
   controllers: [HealthController],
   imports: [RdbDatabaseModule, RedisModule],
-  exports: [HEALTH, HealthMetricsService],
+  exports: [HEALTH],
   providers: [
     { provide: DISK_SPACE_PROBE, useValue: nodeDiskSpaceProbe },
     { provide: MEMORY_USAGE_PROBE, useValue: processMemoryUsageProbe },
