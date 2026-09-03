@@ -174,6 +174,52 @@ export default tseslint.config(
     },
   },
   {
+    // ARCHITECTURE.md — 다른 capability의 adapter를 직접 import하지 않는다.
+    //
+    // ## 왜 규칙이 하나 더 필요한가 (2026-09-03, 파생 프로젝트에서 실측)
+    //
+    // 아래 역방향 차단은 **import하는 파일이** `application/`·`domain/`일 때만 걸린다.
+    // 그래서 아직 전환하지 않은 capability의 service·spec과 `scripts/`·`test/`는 아무 제약이
+    // 없고, 실제로 소비자 spec 3개와 스크립트 1개가 게이트를 전부 통과한 채 남의 adapter를
+    // 잡고 있었다. module의 `exports`가 막는 것은 **생성자 주입뿐**이다 —
+    // `app.get()`, type import, spec은 못 막는다.
+    //
+    // ## ⚠ 규칙 이름을 base `no-restricted-imports`로 쓴 이유
+    //
+    // ESLint flat config는 같은 룰을 **병합하지 않고 교체한다.** 아래 세 블록이 전부
+    // `@typescript-eslint/no-restricted-imports`이고 `files`가 겹치므로, 같은 이름으로
+    // 블록을 하나 더 만들면 **그 셋이 조용히 사라진다.** 이름이 다른 base 룰을 쓰면
+    // 교체가 일어나지 않는다. (위 A-5 spread 블록에 적힌 것과 같은 함정이다.)
+    //
+    // ## 무엇을 막고 무엇을 허용하나
+    //
+    // 막는 것은 **capability 이름을 거쳐 adapters로 들어가는 경로**다. 자기 capability 안의
+    // `./adapters/**`·`../adapters/**`는 걸리지 않는다 — module이 자기 adapter를 조립하는
+    // 것은 composition root의 일이다.
+    files: ['src/**/*.ts', 'scripts/**/*.ts', 'test/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '../*/adapters/**',
+                '../../*/adapters/**',
+                '../../../*/adapters/**',
+                '../../../../*/adapters/**',
+                '../src/*/adapters/**',
+                '../../src/*/adapters/**',
+              ],
+              message:
+                'ARCHITECTURE.md: 다른 capability의 adapter를 직접 import하지 않는다. 그쪽이 공개한 application/ports/in 계약이나 domain 타입을 쓸 것. 테스트도 production interface를 쓴다.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // ARCHITECTURE.md — application/domain은 port 안쪽이며 concrete adapter를 선택하지 않는다.
     files: ['src/**/application/**/*.ts', 'src/**/domain/**/*.ts'],
     rules: {
