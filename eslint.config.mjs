@@ -174,6 +174,70 @@ export default tseslint.config(
     },
   },
   {
+    // ARCHITECTURE.md — 다른 capability의 adapter를 직접 import하지 않는다.
+    //
+    // ## 왜 규칙이 하나 더 필요한가 (2026-09-03, 파생 프로젝트에서 실측)
+    //
+    // 아래 역방향 차단은 **import하는 파일이** `application/`·`domain/`일 때만 걸린다.
+    // 그래서 아직 전환하지 않은 capability의 service·spec과 `scripts/`·`test/`는 아무 제약이
+    // 없고, 실제로 소비자 spec 3개와 스크립트 1개가 게이트를 전부 통과한 채 남의 adapter를
+    // 잡고 있었다. module의 `exports`가 막는 것은 **생성자 주입뿐**이다 —
+    // `app.get()`, type import, spec은 못 막는다.
+    //
+    // ## ⚠ 규칙 이름을 base `no-restricted-imports`로 쓴 이유
+    //
+    // ESLint flat config는 같은 룰을 **병합하지 않고 교체한다.** 아래 세 블록이 전부
+    // `@typescript-eslint/no-restricted-imports`이고 `files`가 겹치므로, 같은 이름으로
+    // 블록을 하나 더 만들면 **그 셋이 조용히 사라진다.** 이름이 다른 base 룰을 쓰면
+    // 교체가 일어나지 않는다. (위 A-5 spread 블록에 적힌 것과 같은 함정이다.)
+    //
+    // ## 무엇을 막고 무엇을 허용하나
+    //
+    // 막는 것은 **capability 이름을 거쳐 adapters로 들어가는 경로**다. 자기 capability 안의
+    // `./adapters/**`·`../adapters/**`는 걸리지 않는다 — module이 자기 adapter를 조립하는
+    // 것은 composition root의 일이다.
+    //
+    // ## ⚠ glob 네 개가 필요한 이유 (2026-09-03 실측)
+    //
+    // 이 rule의 glob은 import 문자열을 **그대로** 본다. 경로를 resolve하지 않으므로 `..`가
+    // 리터럴 segment이고, 거기서 둘이 따라온다.
+    //
+    //   - `**`는 `..`를 **건너지 못한다.** `**/*/adapters/**` 하나로 끝내려 하면 상대 경로
+    //     위반을 전부 놓친다(실측: 깊이 1도 통과). 반면 리터럴 `../`로 시작한 뒤의 `**`는
+    //     남은 `..`를 건넌다 — 그래서 `../**/*/adapters/**`가 깊이와 무관하게 문다.
+    //   - 그래서 `../`로 시작하는 짝과 `./`로 시작하는 짝이 각각 필요하다. 앞의 둘이
+    //     capability 안에서 나가는 경로를, 뒤의 둘이 `src/app.module.ts`처럼 이미 capability
+    //     밖에 있는 파일의 `./health/adapters/**`를 잡는다.
+    //
+    // 깊이를 `../` 개수로 열거하면 **그보다 깊은 디렉토리가 조용히 빠져나간다.** 처음에는
+    // 네 단계까지만 열거돼 있었고, 리뷰가 여섯 단계짜리 위반을 만들어 통과시켰다.
+    //
+    // 반대 방향의 오검출 하나는 남긴다: `*`가 `..` segment에도 매치되므로 `../../adapters/**`
+    // 처럼 자기 adapter를 두 단계 위에서 부르는 형태도 걸린다. 그 자리는 `application/`·
+    // `domain/`뿐인데 아래 역방향 차단이 이미 막고 있고, adapter끼리는 `adapters` segment를
+    // 지나지 않고 서로 닿는다.
+    files: ['src/**/*.ts', 'scripts/**/*.ts', 'test/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                '../*/adapters/**',
+                '../**/*/adapters/**',
+                './*/adapters/**',
+                './**/*/adapters/**',
+              ],
+              message:
+                'ARCHITECTURE.md: 다른 capability의 adapter를 직접 import하지 않는다. 그쪽이 공개한 application/ports/in 계약이나 domain 타입을 쓸 것. 테스트도 production interface를 쓴다.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // ARCHITECTURE.md — application/domain은 port 안쪽이며 concrete adapter를 선택하지 않는다.
     files: ['src/**/application/**/*.ts', 'src/**/domain/**/*.ts'],
     rules: {

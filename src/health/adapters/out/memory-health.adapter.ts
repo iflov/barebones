@@ -1,10 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import type {
-  HealthIndicatorPort,
-  HealthIndicatorSnapshot,
-} from '../../application/ports/health-indicator.port.js';
+import type { HealthIndicatorPort } from '../../application/ports/out/health-indicator.port.js';
+import type { HealthIndicatorSnapshot } from '../../domain/system-health.js';
 
 export interface MemoryUsageProbe {
   heapUsed(): number;

@@ -1,9 +1,9 @@
-import { Injectable, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { Gauge } from '@prometheus-io/client';
 
 import { MetricsService } from '../infra/metrics/metrics.service.js';
-import { HealthCoordinator } from './application/health.coordinator.js';
+import { HEALTH, type HealthPort } from './application/ports/in/health.port.js';
 
 /**
  * 헬스체크 결과를 Prometheus Gauge 메트릭으로 노출하는 서비스
@@ -21,7 +21,8 @@ import { HealthCoordinator } from './application/health.coordinator.js';
  *           → registry.metrics()
  *             → @prometheus-io/client가 이 Gauge의 collect 콜백 자동 실행
  *               → gauge.reset() (이전 값 초기화)
- *               → healthCoordinator.inspectIndicators() (DB, Redis 등 체크)
+ *               → health.check() (DB, Redis 등 체크)
+ *               → up/down을 1/0으로 옮긴다 (이 파일이 소유하는 표현)
  *               → gauge.set({ indicator: 'database' }, 1) 등 값 세팅
  *             → 텍스트로 직렬화하여 반환
  *
@@ -48,7 +49,7 @@ export class HealthMetricsService implements OnModuleInit {
      * ModuleRef + onModuleInit 조합으로 느슨하게 연결한다.
      */
     private readonly moduleRef: ModuleRef,
-    private readonly healthCoordinator: HealthCoordinator,
+    @Inject(HEALTH) private readonly health: HealthPort,
   ) {}
 
   onModuleInit(): void {
@@ -98,16 +99,16 @@ export class HealthMetricsService implements OnModuleInit {
        *   - collect: 스크랩할 때만 실행, 항상 최신 데이터, 관리 불필요
        *
        * reset()이 필요한 이유:
-       *   Redis를 비활성화하면 inspectIndicators()가 redis를 반환하지 않는데,
+       *   Redis를 비활성화하면 check()가 redis indicator를 반환하지 않는데,
        *   reset 없이면 이전 스크랩의 redis 값이 그대로 남아 잘못된 메트릭 노출
        */
       collect: async () => {
         gauge.reset();
 
-        const statuses = await this.healthCoordinator.inspectIndicators();
+        const health = await this.health.check();
 
-        Object.entries(statuses).forEach(([indicator, value]) => {
-          gauge.set({ indicator }, value);
+        Object.entries(health.indicators).forEach(([indicator, snapshot]) => {
+          gauge.set({ indicator }, snapshot.status === 'up' ? 1 : 0);
         });
       },
       help: 'Health indicator status (1=up, 0=down)',

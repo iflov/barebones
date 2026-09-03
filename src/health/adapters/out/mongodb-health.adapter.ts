@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import mongoose, { type Connection } from 'mongoose';
 
-import type {
-  HealthIndicatorPort,
-  HealthIndicatorSnapshot,
-} from '../../application/ports/health-indicator.port.js';
+import type { HealthIndicatorPort } from '../../application/ports/out/health-indicator.port.js';
+import type { HealthIndicatorSnapshot } from '../../domain/system-health.js';
 
 @Injectable()
 export class MongodbHealthAdapter implements HealthIndicatorPort {

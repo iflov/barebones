@@ -1,17 +1,16 @@
-import { Controller, Get, ServiceUnavailableException, Version } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
+import { Controller, Get, Inject, ServiceUnavailableException, Version } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 
 import { HEALTH_ROUTE_PATH } from '../../../../config/observability.config.js';
-import type { SystemHealth } from '../../../application/ports/health-indicator.port.js';
-import { GetHealthQuery } from '../../../application/queries/get-health.query.js';
+import { HEALTH, type HealthPort } from '../../../application/ports/in/health.port.js';
+import type { SystemHealth } from '../../../domain/system-health.js';
 
-/** HTTP inbound adapter. 헬스 판단은 application 계층에 위임하고 HTTP 상태만 변환한다. */
+/** HTTP inbound adapter. 헬스 판단은 inbound port에 위임하고 HTTP 상태만 변환한다. */
 @ApiTags('health')
 @Controller(HEALTH_ROUTE_PATH)
 export class HealthController {
-  constructor(private readonly queryBus: QueryBus) {}
+  constructor(@Inject(HEALTH) private readonly health: HealthPort) {}
 
   @Get()
   @Version('1')
@@ -19,7 +18,7 @@ export class HealthController {
   @ApiOperation({ summary: 'Application health check' })
   @ApiOkResponse({ description: 'Returns application health information' })
   async check(): Promise<SystemHealth> {
-    const result = await this.queryBus.execute<GetHealthQuery, SystemHealth>(new GetHealthQuery());
+    const result = await this.health.check();
 
     if (result.status === 'down') {
       throw new ServiceUnavailableException('Health check failed');

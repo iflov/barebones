@@ -1,5 +1,5 @@
 import { HealthCoordinator } from './health.coordinator.js';
-import type { HealthIndicatorPort } from './ports/health-indicator.port.js';
+import type { HealthIndicatorPort } from './ports/out/health-indicator.port.js';
 
 function indicator(key: string, result: { status: 'down' | 'up' } | Error): HealthIndicatorPort {
   return {
@@ -51,14 +51,5 @@ describe('HealthCoordinator', () => {
       },
       status: 'down',
     });
-  });
-
-  it('maps snapshots to prometheus gauge values', async () => {
-    const coordinator = new HealthCoordinator([
-      indicator('database', { status: 'up' }),
-      indicator('redis', { status: 'down' }),
-    ]);
-
-    await expect(coordinator.inspectIndicators()).resolves.toEqual({ database: 1, redis: 0 });
   });
 });

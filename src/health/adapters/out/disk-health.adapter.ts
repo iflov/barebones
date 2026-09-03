@@ -2,10 +2,8 @@ import { statfs } from 'node:fs/promises';
 
 import { Inject, Injectable } from '@nestjs/common';
 
-import type {
-  HealthIndicatorPort,
-  HealthIndicatorSnapshot,
-} from '../../application/ports/health-indicator.port.js';
+import type { HealthIndicatorPort } from '../../application/ports/out/health-indicator.port.js';
+import type { HealthIndicatorSnapshot } from '../../domain/system-health.js';
 
 export interface DiskSpaceSnapshot {
   readonly bavail: number;
