@@ -78,9 +78,16 @@ TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. 2026-08-28 실측 
   ```
 
 - `typescript-eslint`는 최신 `8.68.0`도 peer가 `<6.1.0`이라 7을 지원하지 않는다.
-- `ts-node`(TypeORM CLI가 경유한다)도 같은 compiler API에 의존한다.
+- `ts-node`(TypeORM CLI가 경유한다)도 같은 compiler API에 의존한다. 2026-09-11에
+  `pnpm typeorm migration:show`로 실측했고 DB 연결 전에 다음으로 죽는다.
+
+  ```text
+  TypeError: Cannot read properties of undefined (reading 'fileExists')
+      at readConfig (ts-node/dist/configuration.js:91:33)
+  ```
+
 - 반면 `tsc --noEmit`, Vitest, `tsx` 기반 스크립트는 7.0.2에서 **이미 통과한다.**
-  막히는 것은 `build`와 `lint` 둘뿐이다.
+  막히는 것은 `build`, `lint`, TypeORM CLI 셋이다.
 
 해제 조건은 둘 다 충족돼야 한다.
 
@@ -90,6 +97,38 @@ TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. 2026-08-28 실측 
 기다릴 가치는 있다. 같은 코드에서 direct executable `tsc --noEmit` warm run이 **6.0.3에서
 1180–1230ms, 7.0.2에서 240–260ms**였다. 7.0은 네이티브(Go) 포트이고 플랫폼별 바이너리를
 optionalDependencies로 싣는다.
+
+### 2026-09-11 재검증
+
+같은 커밋(`757037d`)에서 6.0.3 / 7.0.2 / `7.1.0-dev.20260910.1` / side-by-side 네 구성으로
+`check:scaffold`, `check:observability`, `typecheck`, `lint`, `test`, `build`, `tsc -p tsconfig.build.json`
+emit, TypeORM CLI를 돌렸다. 해제 조건은 **둘 다 여전히 미충족**이다.
+
+- TypeScript stable latest는 7.0.2. 7.1은 nightly(`next` 태그)만 있고, nightly도 `exports["."]`가
+  `./lib/version.cjs`라 compiler API가 없다. 7.0.2와 결과가 동일하다.
+- `typescript-eslint` 최신 `8.70.0`도 peer가 `<6.1.0`. 추적 이슈 #10940은 open이고 milestone이 없다.
+- 7.x에서 `lint`는 peer 경고가 아니라 ESLint 프로세스가 `Error [ERR_INTERNAL_ASSERTION]`으로 죽는다.
+- 7.0.2 `tsc`의 emit 결과는 6.0.3과 JS 54파일이 byte 단위로 동일하다. d.ts 1건만 따옴표 스타일이
+  다르다. 데코레이터 metadata 출력 차이는 없다.
+
+MS 7.0 공지의 공식 side-by-side 구성은 이 저장소에서 e2e까지 **전부 통과**했다.
+`require('typescript')`는 6 API(Nest CLI, ts-node, typescript-eslint가 사용), `tsc` 실행 파일은 7이 된다.
+
+```json
+"typescript": "npm:@typescript/typescript6@^6.0.2",
+"@typescript/native": "npm:typescript@^7.0.2"
+```
+
+| 구성         | typecheck cold / warm | lint | build | test              | TypeORM CLI |
+| ------------ | --------------------- | ---- | ----- | ----------------- | ----------- |
+| 6.0.3        | 2.70s / 1.48s         | 통과 | 통과  | 통과              | 통과        |
+| 7.0.2        | 1.68s / 0.53s         | 실패 | 실패  | 통과              | 실패        |
+| side-by-side | 0.67s / 0.53s         | 통과 | 통과  | 통과 (+e2e 20/20) | 통과        |
+
+그래도 **채택하지 않는다.** `pnpm typecheck`(7)와 `nest build`(6)가 서로 다른 검사기가 되어
+typecheck 통과가 build 통과를 보장하지 않는 drift 축이 하나 생긴다. SWC를 거부한 이유와 같다.
+절대 시간 이득이 1~2초라 그 비용을 정당화하지 못한다. 미검증 항목은 pre-commit hook, IDE tsserver
+버전 선택, Dockerfile 빌드다.
 
 ### SWC 빌더는 쓰지 않는다
 
