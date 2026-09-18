@@ -1,6 +1,10 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
+import { Writable } from 'node:stream';
 
 import type { ConfigService } from '@nestjs/config';
+import type { DestinationStream } from 'pino';
+import { type Options as PinoHttpOptions, pinoHttp } from 'pino-http';
 import type { Mock } from 'vitest';
 
 import {
@@ -24,6 +28,47 @@ function createResponse(): { response: ServerResponse; setHeader: Mock } {
   const setHeader = vi.fn();
 
   return { response: { setHeader } as unknown as ServerResponse, setHeader };
+}
+
+async function captureHttpLogs(
+  path: string,
+): Promise<{ logs: string[]; requestId: string | null }> {
+  const logs: string[] = [];
+  const destination = new Writable({
+    write(chunk: Buffer, _encoding, callback) {
+      logs.push(chunk.toString());
+      callback();
+    },
+  }) as unknown as DestinationStream;
+  const config = buildPinoConfig(
+    createConfigService({
+      LOG_LOKI_ENABLED: false,
+      LOG_STDOUT_ENABLED: false,
+      NODE_ENV: 'production',
+    }),
+  );
+  const logger = pinoHttp(config.pinoHttp as PinoHttpOptions, destination);
+  const server = createServer((request, response) => {
+    logger(request, response);
+    response.end('ok');
+  });
+
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+
+  try {
+    const address = server.address();
+    if (address === null || typeof address === 'string') {
+      throw new Error('Test HTTP server did not expose a TCP address.');
+    }
+
+    const response = await fetch(`http://127.0.0.1:${address.port}${path}`);
+
+    return { logs, requestId: response.headers.get('x-request-id') };
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error === undefined ? resolve() : reject(error))),
+    );
+  }
 }
 
 /**
@@ -96,6 +141,21 @@ describe('resolveRequestId', () => {
 });
 
 describe('buildPinoConfig', () => {
+  it('실제 pino-http에서는 health 요청을 기록하지 않지만 X-Request-Id는 응답한다', async () => {
+    const { logs, requestId } = await captureHttpLogs('/v1/system/health');
+
+    expect(logs).toEqual([]);
+    expect(requestId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+  });
+
+  it('실제 pino-http에서는 일반 요청을 기록한다', async () => {
+    const { logs, requestId } = await captureHttpLogs('/v1/users');
+
+    expect(logs).toHaveLength(1);
+    expect(logs[0]).toContain('request completed');
+    expect(requestId).toBeDefined();
+  });
+
   it('uses app/env labels for the Loki transport', () => {
     const config = createConfigService({
       APP_NAME: 'barebones',

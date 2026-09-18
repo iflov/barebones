@@ -62,6 +62,52 @@ AppModule → RdbDatabaseModule → selected ORM adapter → selected RDB
 - TypeORM 생성 migration은 실행 전에 lint fix를 거친다. pre-commit도 type-only import를 고치지만
   생성 직후 앱/CLI 실행까지 대신 보호하지는 않는다.
 
+## NestJS 12 현재 기준 (2026-09-18)
+
+공식 npm registry와 각 package의 peer dependency를 다시 확인해 다음 Nest 12 조합을 고정했다.
+
+- `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`, `@nestjs/testing`,
+  `@nestjs/cli`, `@nestjs/schematics`: **12.0.3**
+- `@nestjs/bullmq`, `@nestjs/cache-manager`, `@nestjs/config`, `@nestjs/mongoose`:
+  **12.0.0** (각 package의 현재 Nest 12 최신)
+- `@nestjs/swagger`, `@nestjs/typeorm`: **12.0.1** (각 package의 현재 Nest 12 최신)
+- `@nestjs/throttler`: **6.7.0** — `@nestjs/core/common ^7 || ^8 || ^9 || ^10 || ^11 || ^12`
+- `nestjs-pino`: **5.2.0** — `@nestjs/core/common ^11.0.8 || ^12.0.2`, `pino ^10`,
+  `pino-http ^11`, Node `>=22.12`; 이 저장소의 Node `>=24`와 core/common 12.0.3이 충족한다.
+
+그래서 `pnpm-workspace.yaml`의 `peerDependencyRules.allowedVersions` 우회는 삭제했다.
+Nest 12 출시 때 추가했던 `minimumReleaseAgeExclude`도 제거했다. 다만 6.7.0은 선택 당시
+pnpm minimum-release-age cutoff 안에 있었으므로, 해당 package 하나만 window가 끝날 때까지 예외로
+남긴다. `pnpm install --frozen-lockfile`이 peer warning 없이 정책 검증까지 통과해야 이 결론이 유지된다.
+
+### 이 스캐폴드에서 확인한 12.0.2 / 12.0.3 영향
+
+- 12.0.2의 microservice/socket adapter 수정은 이 저장소가 그 adapter를 설치하지 않아 적용 대상이
+  아니다. core의 반복 shutdown listener 정리는 이 저장소가 `enableShutdownHooks()` 대신
+  `main.ts`의 단일 signal handler를 쓰므로 현재 shutdown path를 바꾸지 않는다. `ParseArrayPipe`,
+  UUID validation 관련 수정도 현 scaffold의 endpoint에는 해당 pipe 사용이 없다.
+- 12.0.3은 common의 UUID/proto-key 처리 보완과 platform-express의 multer 2.4.0 갱신을 포함한다.
+  이 스캐폴드는 UUID pipe 또는 multipart controller를 제공하지 않으므로 새 HTTP surface 변화는 없다.
+  built image와 E2E로 ESM boot, TypeORM migration artifact 탐색, health 200/503 mapping, Swagger를
+  재확인한다.
+- `nestjs-pino` v5는 exports map을 추가하고 Nest 12.0.2+를 요구한다. 이 프로젝트는 public entry
+  point만 사용하므로 deep-import migration이 없다. 실제 `pino-http` regression test가 health/metrics의
+  request log 0건, `X-Request-Id` 생성·전파·응답, 일반 route의 `request completed` 1건을 확인한다.
+  Loki transport의 app/env labels도 기존 설정을 유지한다.
+- throttler 6.7은 기본 IPv6 tracker를 `/64`로 정규화한다. IPv4와 custom tracker는 바뀌지 않지만,
+  proxy hop을 신뢰한 뒤의 `req.ip`가 IPv6이면 같은 `/64`가 하나의 bucket을 공유한다. IPv6 privacy
+  address 회전으로 limit을 피하는 경로를 막기 위해 이 기본값을 유지한다. trade-off는 같은 `/64`의
+  서로 다른 익명 사용자가 더 일찍 429를 공유할 수 있다는 점이며, 필요하면 명시적으로
+  `ipv6SubnetPrefix: 128`을 설정해 이전 per-address behaviour로 되돌릴 수 있다.
+
+### Container build 경계
+
+`pnpm build`의 scaffold 검증은 `test/load-test-env.ts`와 `test/persistence.e2e-spec.ts`를 입력으로
+읽는다. 따라서 Docker build context에서 `test/`를 제외하면 host build는 통과해도 image build는
+`ENOENT` 또는 scaffold consistency failure로 깨진다. test source는 tsconfig build output과 final runtime
+stage 모두에서 제외되므로 build context에는 남기고 final stage에는 `dist`, `config`, production
+dependencies만 복사한다.
+
 ## 툴체인 버전 정책
 
 TypeScript는 **6.x 고정**이다. 7로 올리지 않는다. 2026-08-28 실측 근거:

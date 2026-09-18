@@ -1,9 +1,22 @@
-import type { INestApplication } from '@nestjs/common';
+import { Controller, Get, type INestApplication, Version } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 
 import { AppModule } from '../src/app.module.js';
 import { configureHttpApp } from '../src/app.setup.js';
+
+/**
+ * health/metrics는 외부 관측 시스템이 제한에 막히지 않게 `@SkipThrottle()`을 쓴다.
+ * 실제 guard 동작은 이 E2E 전용 일반 endpoint에서 검증한다.
+ */
+@Controller('throttle-probe')
+class ThrottleProbeController {
+  @Get()
+  @Version('1')
+  index(): { ok: true } {
+    return { ok: true };
+  }
+}
 
 describe('AppController (e2e)', () => {
   let app: INestApplication | undefined;
@@ -11,6 +24,7 @@ describe('AppController (e2e)', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
+      controllers: [ThrottleProbeController],
       imports: [AppModule],
     }).compile();
 
@@ -77,6 +91,21 @@ describe('AppController (e2e)', () => {
       .expect(200);
 
     expect(response.headers['x-request-id']).toBe('upstream-trace-id');
+  });
+
+  it('같은 클라이언트가 한 endpoint의 제한을 넘으면 실제로 429를 받는다', async () => {
+    const limit = Number(process.env.THROTTLE_LIMIT ?? 100);
+    let response: request.Response | undefined;
+
+    for (let attempt = 0; attempt <= limit; attempt += 1) {
+      response = await request(baseUrl).get('/v1/throttle-probe');
+
+      if (response.status === 429) {
+        break;
+      }
+    }
+
+    expect(response?.status).toBe(429);
   });
 
   it('GET /docs serves the swagger UI', async () => {

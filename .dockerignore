@@ -16,6 +16,6 @@ coverage
 .claude
 .specify
 
-# 빌드 산출물에 들어갈 이유가 없는 것 (tsconfig.build.json이 이미 제외한다)
-test
+# `pnpm build`가 scaffold 선택과 Docker E2E 환경을 교차 검증할 때 `test/`를 읽는다.
+# tsconfig.build.json은 이를 출력하지 않고 final runtime stage도 COPY하지 않는다.
 *.md
